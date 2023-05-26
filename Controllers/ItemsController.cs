@@ -34,25 +34,31 @@ namespace db_back.Controllers
             {
                 using (var dbConnection = new DbConnection().connection)
                 {
-                OdbcCommand command = new OdbcCommand("SELECT ITEM_ID, TITLE, PRICE, CATEGORY FROM ITEMS", dbConnection);
-                reader = await command.ExecuteReaderAsync();
+                    OdbcCommand command = new OdbcCommand("SELECT ITEM_ID, TITLE, PRICE, CATEGORY FROM ITEMS", dbConnection);
+                    reader = await command.ExecuteReaderAsync();
 
 
                     var list = new List<Item>();
-                while (reader.Read())
-                {
-                    list.Add(new Item { id = (int)reader["ITEM_ID"], title = (string)reader["TITLE"],
-                        price = (int)reader["PRICE"], category = (string)reader["CATEGORY"] });
-                }
+                    while (reader.Read())
+                    {
+                        list.Add(new Item
+                        {
+                            id = (int)reader["ITEM_ID"],
+                            title = (string)reader["TITLE"],
+                            price = (int)reader["PRICE"],
+                            category = (string)reader["CATEGORY"]
+                        });
+                    }
 
-                _logger.LogInformation($"[{DateTime.Now}] Req on /items fulfilled with status code 200\n");
-                result = new JsonResult(list)
-                {
-                    StatusCode = 200
-                };
+                    _logger.LogInformation($"[{DateTime.Now}] Req on /items fulfilled with status code 200\n");
+                    result = new JsonResult(list)
+                    {
+                        StatusCode = 200
+                    };
                 }
                 return result;
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError($"[{DateTime.Now}] Error trying to exec query\n{ex.Message}\nReq not fulfilled with status code 500");
 
@@ -67,7 +73,7 @@ namespace db_back.Controllers
         [HttpGet("[action]/{id?}")]
         public async Task<JsonResult?> GetImage(int id)
         {
-            _logger.LogTrace($"[{DateTime.Now}] GET req on /getimages/{id}\n");
+            _logger.LogTrace($"[{DateTime.Now}] GET req on /getimage/{id}\n");
 
             DbDataReader reader;
             JsonResult result;

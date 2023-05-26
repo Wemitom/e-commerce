@@ -24,6 +24,7 @@ function App() {
               <Route path="order" element={<Order />} />
               <Route path="order/success" element={<Success />} />
             </Route>
+            <Route path="auth" element={<></>} />
           </Route>
         </Routes>
       </main>

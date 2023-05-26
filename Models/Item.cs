@@ -15,5 +15,4 @@ namespace db_back.Models
 
         public string category { get; set; }
     }
-
 }

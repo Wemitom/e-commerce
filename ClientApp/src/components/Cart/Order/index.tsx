@@ -4,24 +4,25 @@ import { Formik, Field, Form } from 'formik';
 import InputMask from 'react-input-mask';
 import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
-
 import { CartItemType, changeCount } from 'store/cartSlice';
 import { classNames } from 'utils';
 
 import { OrderSchema } from './validationSchema';
 
-const InputField = ({
+export const InputField = ({
   name,
   required = false,
   error,
   label,
-  fullWidth = false
+  fullWidth = false,
+  password = false
 }: {
   name: string;
   required?: boolean;
   error?: string;
   label?: string;
   fullWidth?: boolean;
+  password?: boolean;
 }) => {
   return (
     <div
@@ -35,6 +36,7 @@ const InputField = ({
         {required && <span className="text-red-600">*</span>}
       </label>
       <Field
+        type={password ? 'password' : undefined}
         name={name}
         className={classNames(
           'rounded-xl px-3 py-1 border',
