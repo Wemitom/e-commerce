@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using db_back.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -81,6 +82,14 @@ namespace db_back.Controllers
 
             _logger.LogTrace($"[{DateTime.Now}] Attempt failed.\n");
             return StatusCode(401);
+        }
+
+        [HttpGet("[action]")]
+        [Authorize]
+        public StatusCodeResult LogOut()
+        {
+            Response.Cookies.Delete("jwt_token");
+            return StatusCode(200);
         }
     }
 }

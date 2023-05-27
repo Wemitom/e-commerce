@@ -366,7 +366,7 @@ const Order = () => {
                       0
                     )
                     .toFixed(2)}
-                  $
+                  ₽
                 </span>
               </p>
             </div>

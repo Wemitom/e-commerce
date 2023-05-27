@@ -6,22 +6,39 @@ export const storeApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl:
       process.env.NODE_ENV || process.env.NODE_ENV === 'development'
-        ? 'http://localhost:3333'
-        : ''
+        ? 'http://localhost:3333/items'
+        : '/items'
   }),
+  tagTypes: ['Products'],
   endpoints: (builder) => ({
     getProducts: builder.query<ProductType[], void>({
-      query: () => ({ url: 'items', method: 'GET' })
+      query: () => ({ url: '', method: 'GET' })
     }),
     getImage: builder.query<string, number>({
       query: (id: number) => ({
-        url: `items/getimage/${id}`,
+        url: `getimage/${id}`,
         method: 'GET',
-        responseHandler: async (res) =>
-          `data:image/png;base64,${(await res.json()).image}`
+        responseHandler: async (res) => {
+          const { image } = await res.json();
+          image ? `data:image/png;base64,${image}` : image;
+        }
       })
+    }),
+    deleteProduct: builder.mutation<
+      { message: string; code: number } | undefined,
+      number
+    >({
+      query: (id: number) => ({
+        url: `${id}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: (result, error, id) => [{ type: 'Products', id }]
     })
   })
 });
 
-export const { useGetProductsQuery, useGetImageQuery } = storeApi;
+export const {
+  useGetProductsQuery,
+  useGetImageQuery,
+  useDeleteProductMutation
+} = storeApi;

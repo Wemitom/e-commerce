@@ -29,7 +29,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
 
   return (
     <>
-      <header className="sticky top-0 border-b bg-white/90 backdrop-blur">
+      <header className="sticky top-0 z-10 border-b bg-white/90 backdrop-blur">
         <ul className="relative flex flex-row items-center justify-between gap-3 py-6">
           <li
             className="ml-12 flex cursor-pointer flex-col items-center sm:ml-16"
@@ -74,9 +74,13 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
               'ml-3 flex w-10 cursor-pointer flex-col items-center text-center sm:ml-6 relative',
               pathname !== '/' ? 'hidden' : ''
             )}
-            onClick={() =>
-              !loggedIn ? setShowLogin(true) : dispatcher(logOut())
-            }
+            onClick={() => {
+              if (!loggedIn) setShowLogin(true);
+              else {
+                dispatcher(logOut());
+                fetch('/auth/logout');
+              }
+            }}
           >
             <KeyIcon className="h-8 w-8" />
             <p className="hidden sm:block">{!loggedIn ? 'Войти' : 'Выйти'}</p>
@@ -137,7 +141,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
                 >
                   Войти
                 </button>
-                {errors && touched && (
+                {errorData && (
                   <p className="text-red-500">Введены неверные данные</p>
                 )}
               </div>

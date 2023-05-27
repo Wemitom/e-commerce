@@ -1,6 +1,5 @@
-import { useDispatch } from 'react-redux';
-
 import { Categories } from 'components/Products/Product';
+import { useDispatch } from 'react-redux';
 import { changeCount } from 'store/cartSlice';
 
 const CartItem = ({
@@ -61,7 +60,7 @@ const CartItem = ({
           Delete
         </span>
       </div>
-      <span className="w-3/12">{(price * count).toFixed(2)}$</span>
+      <span className="w-3/12">{(price * count).toFixed(2)}₽</span>
       <div className="w-2/12">
         <input
           type="number"
