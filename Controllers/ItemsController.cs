@@ -4,8 +4,10 @@ using System.Data;
 using System.Data.Common;
 using System.Data.Odbc;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using db_back.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -23,7 +25,12 @@ namespace db_back.Controllers
             _logger = logger;
         }
 
+        /// <returns></returns>
+        /// <response code="200">Успех</response>
+        /// <response code="500">Ошибка</response>
         [HttpGet]
+        [ProducesResponseType(typeof(Item[]), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
         public async Task<JsonResult> Get()
         {
             _logger.LogTrace($"[{DateTime.Now}] GET req on /items\n");

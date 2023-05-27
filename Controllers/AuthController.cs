@@ -31,7 +31,7 @@ namespace db_back.Controllers
         }
 
         [HttpPost]
-        public dynamic Post(ManagerCredentials credentials)
+        public StatusCodeResult Post(ManagerCredentials credentials)
         {
             _logger.LogTrace($"[{DateTime.Now}] Auth attempt. username - {credentials.username}\n");
 
@@ -43,10 +43,10 @@ namespace db_back.Controllers
 
             if (reader.Read())
             {
-                var issuer = _configuration["Jwt:Issuer"];
-                var audience = _configuration["Jwt:Audience"];
+                var issuer = _configuration["JWT:Issuer"];
+                var audience = _configuration["JWT:Audience"];
                 var key = Encoding.ASCII.GetBytes
-                (_configuration["Jwt:Key"]);
+                (_configuration["JWT:Key"]);
                 var tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(new[]
@@ -69,8 +69,14 @@ namespace db_back.Controllers
                 var jwtToken = tokenHandler.WriteToken(token);
                 var stringToken = tokenHandler.WriteToken(token);
 
+                Response.Cookies.Append("jwt_token", stringToken, new Microsoft.AspNetCore.Http.CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict
+                });
                 _logger.LogTrace($"[{DateTime.Now}] Attempt successful. Issued a token.\n");
-                return stringToken;
+                return StatusCode(200);
             }
 
             _logger.LogTrace($"[{DateTime.Now}] Attempt failed.\n");

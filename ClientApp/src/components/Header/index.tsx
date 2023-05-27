@@ -15,6 +15,7 @@ import SearchBar from './SearchBar';
 const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
   const [show, setShow] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [errorData, setErrorData] = useState(false);
 
   const cartCount = useSelector((state: RootState) =>
     state.cart.items.reduce((count, item) => count + item.count, 0)
@@ -89,13 +90,35 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
 
       <Modal open={showLogin} setOpen={setShowLogin} title="Вход" center>
         <Formik
-          initialValues={{ login: '', password: '' }}
-          onSubmit={(data) => console.log(data)}
+          initialValues={{ username: '', password: '' }}
+          onSubmit={async (data) => {
+            const res = (
+              await fetch('/auth', {
+                body: JSON.stringify(data),
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                }
+              })
+            ).status;
+
+            switch (res) {
+              case 200:
+                setShowLogin(false);
+                break;
+              case 500:
+                setErrorData(true);
+                break;
+              default:
+                // Обработка неизвестной ошибки
+                break;
+            }
+          }}
         >
           {({ errors, touched, values }) => (
             <Form className="w-full">
               <div className="flex w-80 flex-col items-center">
-                <InputField name="login" label="Логин" fullWidth />
+                <InputField name="username" label="Логин" fullWidth />
                 <InputField name="password" label="Пароль" password fullWidth />
 
                 <button
@@ -106,6 +129,9 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
                 >
                   Войти
                 </button>
+                {errors && touched && (
+                  <p className="text-red-500">Введены неверные данные</p>
+                )}
               </div>
             </Form>
           )}
