@@ -5,9 +5,10 @@ import { HomeIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { InputField } from 'components/Cart/Order';
 import Modal from 'components/Modal';
 import { Form, Formik } from 'formik';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { RootState } from 'store';
+import { logIn, logOut } from 'store/authSlice';
 import { classNames } from 'utils';
 
 import SearchBar from './SearchBar';
@@ -16,10 +17,12 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
   const [show, setShow] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [errorData, setErrorData] = useState(false);
+  const dispatcher = useDispatch();
 
   const cartCount = useSelector((state: RootState) =>
     state.cart.items.reduce((count, item) => count + item.count, 0)
   );
+  const loggedIn = useSelector((state: RootState) => state.auth.loggedIn);
 
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -35,21 +38,23 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
             <HomeIcon className="h-8 w-8" />
             <p className=" hidden sm:block">Домой</p>
           </li>
-          <li
-            className={classNames(
-              'ml-3 flex w-10 cursor-pointer flex-col items-center text-center sm:ml-6 relative',
-              pathname !== '/' ? 'hidden' : ''
-            )}
-            onClick={() => navigate('cart')}
-          >
-            {cartCount !== 0 && (
-              <div className="absolute -top-3 -right-3 flex h-5 w-5 justify-center rounded-full bg-red-600 align-middle text-sm text-white">
-                {cartCount}
-              </div>
-            )}
-            <ShoppingCartIcon className="h-8 w-8" />
-            <p className="hidden sm:block">Корзина</p>
-          </li>
+          {!loggedIn && (
+            <li
+              className={classNames(
+                'ml-3 flex w-10 cursor-pointer flex-col items-center text-center sm:ml-6 relative',
+                pathname !== '/' ? 'hidden' : ''
+              )}
+              onClick={() => navigate('cart')}
+            >
+              {cartCount !== 0 && (
+                <div className="absolute -top-3 -right-3 flex h-5 w-5 justify-center rounded-full bg-red-600 align-middle text-sm text-white">
+                  {cartCount}
+                </div>
+              )}
+              <ShoppingCartIcon className="h-8 w-8" />
+              <p className="hidden sm:block">Корзина</p>
+            </li>
+          )}
           <li
             className={classNames(
               'mr-12 cursor-pointer sm:ml-auto sm:mr-16 sm:hidden',
@@ -69,10 +74,12 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
               'ml-3 flex w-10 cursor-pointer flex-col items-center text-center sm:ml-6 relative',
               pathname !== '/' ? 'hidden' : ''
             )}
-            onClick={() => setShowLogin(true)}
+            onClick={() =>
+              !loggedIn ? setShowLogin(true) : dispatcher(logOut())
+            }
           >
             <KeyIcon className="h-8 w-8" />
-            <p className="hidden sm:block">Войти</p>
+            <p className="hidden sm:block">{!loggedIn ? 'Войти' : 'Выйти'}</p>
           </li>
           <li
             className={classNames(
@@ -105,6 +112,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
             switch (res) {
               case 200:
                 setShowLogin(false);
+                dispatcher(logIn(data.username));
                 break;
               case 500:
                 setErrorData(true);
@@ -115,7 +123,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
             }
           }}
         >
-          {({ errors, touched, values }) => (
+          {({ errors, touched }) => (
             <Form className="w-full">
               <div className="flex w-80 flex-col items-center">
                 <InputField name="username" label="Логин" fullWidth />
