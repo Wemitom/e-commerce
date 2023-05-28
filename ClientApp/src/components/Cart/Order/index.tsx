@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 
 import { Formik, Field, Form } from 'formik';
-import InputMask from 'react-input-mask';
 import { useDispatch } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
+import MaskedInput from 'react-text-mask';
+
+import Button from 'components/common/Button';
 import { CartItemType, changeCount } from 'store/cartSlice';
 import { classNames } from 'utils';
 
@@ -48,7 +50,7 @@ export const InputField = ({
   );
 };
 
-const AsyncSelect = ({
+export const AsyncSelect = ({
   name,
   label,
   error,
@@ -63,8 +65,9 @@ const AsyncSelect = ({
 }) => {
   return (
     <div className="flex w-full flex-col">
-      <label htmlFor={name} className={'ml-1 mb-2'}>
+      <label htmlFor={name} className="ml-1 mb-2 font-bold">
         {label}
+        <span className="text-red-600">*</span>
       </label>
       <Field
         as="select"
@@ -74,9 +77,9 @@ const AsyncSelect = ({
           error ? 'border-red-500' : 'border-gray-300'
         )}
       >
-        <option>Select an option</option>
+        <option value="">Выберите вариант</option>
         {loading ? (
-          <option>Loading...</option>
+          <option value="">Загрузка...</option>
         ) : (
           options.map((option) => <option key={option}>{option}</option>)
         )}
@@ -128,26 +131,26 @@ const InputAddress = ({
       <AsyncSelect
         name={countryName}
         error={errorCountry ? errorCountry : undefined}
-        label="Country"
+        label="Страна"
         loading={loading}
         options={countries}
       />
       <InputField
         name={addressName}
         error={errorAddress ? errorAddress : undefined}
-        label="Address"
+        label="Адрес"
         fullWidth
       />
       <div className="flex w-full flex-col justify-between gap-6 sm:flex-row">
         <InputField
           name={cityName}
           error={errorCity ? errorCity : undefined}
-          label="City"
+          label="Город"
         />
         <InputField
           name={zipName}
           error={errorZip ? errorZip : undefined}
-          label="Zip code"
+          label="Индекс"
         />
       </div>
     </div>
@@ -180,7 +183,8 @@ const Order = () => {
         cardFullname: ''
       }}
       validationSchema={OrderSchema}
-      onSubmit={() => {
+      onSubmit={(data) => {
+        console.log(data);
         state.orderedItems.forEach((item: CartItemType) =>
           dispatch(changeCount({ id: item.item.id, count: 0 }))
         );
@@ -197,7 +201,7 @@ const Order = () => {
                   ? errors.firstName
                   : undefined
               }
-              label="First name"
+              label="Имя"
               required
             />
             <InputField
@@ -207,7 +211,7 @@ const Order = () => {
                   ? errors.lastName
                   : undefined
               }
-              label="Last name"
+              label="Фамилия"
               required
             />
           </div>
@@ -220,7 +224,7 @@ const Order = () => {
           />
 
           <InputAddress
-            name="Billing address"
+            name="Адрес выставления счета"
             countryName="country"
             addressName="address"
             cityName="city"
@@ -238,13 +242,13 @@ const Order = () => {
           <div className="flex gap-3">
             <Field type="checkbox" name="deliverToBilling" />
             <label htmlFor="deliverToBilling">
-              Deliver order to the billing address?
+              Доставить заказ по адресу выставления счета
             </label>
           </div>
 
           {!values.deliverToBilling && (
             <InputAddress
-              name="Delivery address"
+              name="Адрес доставки"
               countryName="countryDelivery"
               addressName="addressDelivery"
               cityName="cityDelivery"
@@ -274,12 +278,12 @@ const Order = () => {
 
           <div className="w-full">
             <h2 className="mb-6 font-bold">
-              Credit card information<span className="text-red-600">*</span>
+              Информация о карте<span className="text-red-600">*</span>
             </h2>
 
             <InputField
               name="cardNum"
-              label="Card number"
+              label="Номер карты"
               error={
                 errors.cardNum && touched.cardNum ? errors.cardNum : undefined
               }
@@ -287,27 +291,20 @@ const Order = () => {
             <div className="mb-3 flex w-full flex-col justify-between gap-6 sm:flex-row">
               <div className="mb-1 flex flex-col">
                 <label htmlFor="cardNum" className="ml-1 mb-2">
-                  Card expiration date
+                  Срок действия карты
                 </label>
-                <InputMask
-                  mask="99/99"
+                <MaskedInput
+                  name="cardExp"
+                  mask={[/[0-1]/, /[0-9]/, '/', /[0-9]/, /[0-9]/]}
+                  className={classNames(
+                    'rounded-xl px-3 py-1 border',
+                    errors.cardExp && touched.cardExp
+                      ? 'border-red-500'
+                      : 'border-gray-300'
+                  )}
                   value={values.cardExp}
                   onChange={handleChange}
-                >
-                  {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment*/}
-                  {/* @ts-ignore*/}
-                  {() => (
-                    <Field
-                      name="cardExp"
-                      className={classNames(
-                        'rounded-xl px-3 py-1 border',
-                        errors.cardExp && touched.cardExp
-                          ? 'border-red-500'
-                          : 'border-gray-300'
-                      )}
-                    />
-                  )}
-                </InputMask>
+                />
                 {
                   <p className="text-sm text-red-600">
                     {errors.cardExp && touched.cardExp
@@ -321,7 +318,7 @@ const Order = () => {
                 error={
                   errors.cardCVC && touched.cardCVC ? errors.cardCVC : undefined
                 }
-                label="Card CVC"
+                label="CVC"
               />
             </div>
             <InputField
@@ -331,26 +328,21 @@ const Order = () => {
                   ? errors.cardFullname
                   : undefined
               }
-              label="Cardholder"
+              label="Имя и фамилия владельца"
             />
           </div>
 
           <div className="mb-6 flex h-fit w-full flex-col rounded-md bg-slate-100">
             <div className="mb-6 flex justify-center border-b p-6">
-              <button
-                className={classNames(
-                  'h-12 w-11/12 rounded-md transition-colors duration-200 bg-accent text-white cursor-pointer hover:bg-accent/90'
-                )}
-                type="submit"
-              >
-                Order
-              </button>
+              <Button handleClick={() => console.log('submited')} submit>
+                Заказать
+              </Button>
             </div>
             <div className="mb-6 p-3">
-              <h3 className="mb-3 text-xl font-bold">Total cost</h3>
+              <h3 className="mb-3 text-xl font-bold">Общая стоимость</h3>
               <p className="flex justify-between">
                 <span>
-                  Items (
+                  Товары (
                   {state.orderedItems.reduce(
                     (count: number, cartItem: CartItemType) =>
                       count + cartItem.count,

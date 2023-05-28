@@ -1,5 +1,6 @@
-import { Categories } from 'components/Products/Product';
 import { useDispatch } from 'react-redux';
+
+import placeholder from 'public/placeholder.png';
 import { changeCount } from 'store/cartSlice';
 
 const CartItem = ({
@@ -7,7 +8,6 @@ const CartItem = ({
   title,
   price,
   image,
-  category,
   count,
   selectChosen,
   unselectChosen,
@@ -16,8 +16,8 @@ const CartItem = ({
   id: number;
   title: string;
   price: number;
-  image: string;
-  category: Categories;
+  image?: string | null;
+  category: string;
   count: number;
   selectChosen: (id: number) => void;
   unselectChosen: (id: number) => void;
@@ -45,7 +45,9 @@ const CartItem = ({
         className="h-24 w-2/12 bg-contain bg-center bg-no-repeat"
         aria-label={title}
         role="img"
-        style={{ backgroundImage: `url(${image})` }}
+        style={{
+          backgroundImage: `url(${image ? image : placeholder})`
+        }}
       />
       <div className="flex w-4/12 flex-col justify-between gap-y-3">
         <span>{title}</span>
@@ -57,7 +59,7 @@ const CartItem = ({
             dispatch(changeCount({ id, count: 0 }));
           }}
         >
-          Delete
+          Удалить
         </span>
       </div>
       <span className="w-3/12">{(price * count).toFixed(2)}₽</span>

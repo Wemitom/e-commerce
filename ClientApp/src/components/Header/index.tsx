@@ -2,11 +2,13 @@ import { useState } from 'react';
 
 import { MagnifyingGlassIcon, KeyIcon } from '@heroicons/react/20/solid';
 import { HomeIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
-import { InputField } from 'components/Cart/Order';
-import Modal from 'components/Modal';
 import { Form, Formik } from 'formik';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
+
+import { InputField } from 'components/Cart/Order';
+import Button from 'components/common/Button';
+import Modal from 'components/Modal';
 import { RootState } from 'store';
 import { logIn, logOut } from 'store/authSlice';
 import { classNames } from 'utils';
@@ -30,9 +32,9 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
   return (
     <>
       <header className="sticky top-0 z-10 border-b bg-white/90 backdrop-blur">
-        <ul className="relative flex flex-row items-center justify-between gap-3 py-6">
+        <ul className="relative flex flex-row items-center justify-between gap-3 py-6 px-12 sm:px-16">
           <li
-            className="ml-12 flex cursor-pointer flex-col items-center sm:ml-16"
+            className="flex cursor-pointer flex-col items-center"
             onClick={() => navigate('/')}
           >
             <HomeIcon className="h-8 w-8" />
@@ -41,7 +43,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
           {!loggedIn && (
             <li
               className={classNames(
-                'ml-3 flex w-10 cursor-pointer flex-col items-center text-center sm:ml-6 relative',
+                'flex w-10 cursor-pointer flex-col items-center text-center sm:ml-6 relative',
                 pathname !== '/' ? 'hidden' : ''
               )}
               onClick={() => navigate('cart')}
@@ -57,7 +59,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
           )}
           <li
             className={classNames(
-              'mr-12 cursor-pointer sm:ml-auto sm:mr-16 sm:hidden',
+              'cursor-pointer sm:ml-auto sm:mr-16 sm:hidden',
               pathname === '/' ? '' : 'hidden'
             )}
           >
@@ -71,7 +73,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
           </li>
           <li
             className={classNames(
-              'ml-3 flex w-10 cursor-pointer flex-col items-center text-center sm:ml-6 relative',
+              'flex w-10 cursor-pointer flex-col items-center text-center sm:ml-6 relative',
               pathname !== '/' ? 'hidden' : ''
             )}
             onClick={() => {
@@ -87,7 +89,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
           </li>
           <li
             className={classNames(
-              'sm:relative sm:top-auto sm:ml-auto flex justify-center mr-16 w-full sm:w-auto',
+              'sm:relative sm:top-auto sm:ml-auto flex justify-center w-full sm:w-auto -mx-12 sm:mx-0',
               show
                 ? 'absolute -bottom-12 sm:bottom-auto bg-slate-200 sm:bg-white sm:h-auto h-12'
                 : 'hidden sm:inline',
@@ -128,19 +130,21 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
           }}
         >
           {({ errors, touched }) => (
-            <Form className="w-full">
-              <div className="flex w-80 flex-col items-center">
-                <InputField name="username" label="Логин" fullWidth />
-                <InputField name="password" label="Пароль" password fullWidth />
+            <Form className="flex w-full justify-center">
+              <div className="flex w-80 flex-col items-center gap-6">
+                <div className="w-full">
+                  <InputField name="username" label="Логин" fullWidth />
+                  <InputField
+                    name="password"
+                    label="Пароль"
+                    password
+                    fullWidth
+                  />
+                </div>
 
-                <button
-                  className={classNames(
-                    'h-12 w-11/12 rounded-md transition-colors duration-200 bg-accent text-white cursor-pointer hover:bg-accent/90 mt-6'
-                  )}
-                  type="submit"
-                >
+                <Button handleClick={() => console.log('submited')} submit>
                   Войти
-                </button>
+                </Button>
                 {errorData && (
                   <p className="text-red-500">Введены неверные данные</p>
                 )}

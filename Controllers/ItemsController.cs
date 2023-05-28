@@ -118,7 +118,7 @@ namespace db_back.Controllers
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
-        public async Task<dynamic> Delete([FromBody] Item item)
+        public async Task<dynamic> Delete([FromBody] NewItem item)
         {
             _logger.LogTrace($"[{DateTime.Now}] POST req on /items\n");
 
@@ -126,10 +126,11 @@ namespace db_back.Controllers
             {
                 using (var dbConnection = new DbConnection().connection)
                 {
-                    OdbcCommand command = new OdbcCommand("INSERT INTO ITEMS(TITLE, PRICE, CATEGORY) VALUES (?, ?, ?)", dbConnection);
+                    OdbcCommand command = new OdbcCommand("INSERT INTO ITEMS(TITLE, PRICE, CATEGORY, IMAGE) VALUES (?, ?, ?, ?)", dbConnection);
                     command.Parameters.AddWithValue("@title", item.title);
                     command.Parameters.AddWithValue("@price", item.price);
                     command.Parameters.AddWithValue("@category", item.category);
+                    command.Parameters.AddWithValue("@image", item.image != null ? Convert.FromBase64String(item.image) : null);
                     await command.ExecuteNonQueryAsync();
 
                     _logger.LogInformation($"[{DateTime.Now}] POST req on /items fulfilled with status code 200\n");

@@ -17,85 +17,89 @@ const isValid = (cardNumber: string): boolean => {
 
 export const OrderSchema = Yup.object().shape({
   firstName: Yup.string()
-    .min(2, 'Too Short!')
-    .max(50, 'Too Long!')
-    .required('Required'),
+    .min(2, 'Имя слишком короткое!')
+    .max(50, 'Имя слишком длинное!')
+    .required('Требуется для заполнения'),
   lastName: Yup.string()
-    .min(2, 'Too Short!')
-    .max(50, 'Too Long!')
-    .required('Required'),
-  email: Yup.string().email('Invalid email').required('Required'),
+    .min(2, 'Фамилия слишком короткая!')
+    .max(50, 'Фамилия слишком длинная!')
+    .required('Требуется для заполнения'),
+  email: Yup.string()
+    .email('Неверный e-mail!')
+    .required('Требуется для заполнения'),
   country: Yup.string()
-    .not(['Select an option'], 'Select a country')
-    .required('Required'),
+    .not([''], 'Выберите страну!')
+    .required('Требуется для заполнения'),
   address: Yup.string()
-    .min(2, 'Too Short!')
-    .max(100, 'Too Long!')
-    .required('Required'),
+    .min(2, 'Адрес слишком короткий!')
+    .max(100, 'Адрес слишком длинный!')
+    .required('Требуется для заполнения'),
   city: Yup.string()
-    .min(2, 'Too Short!')
-    .max(50, 'Too Long!')
-    .required('Required'),
+    .min(2, 'Город слишком короткий!')
+    .max(50, 'Город слишком длинный!')
+    .required('Требуется для заполнения'),
   zip: Yup.string()
-    .min(5, 'Too Short!')
-    .max(9, 'Too Long!')
-    .required('Required'),
+    .min(5, 'Индекс слишком короткий!')
+    .max(9, 'Индекс слишком длинный!')
+    .required('Требуется для заполнения'),
   countryDelivery: Yup.string().when('deliverToBilling', {
     is: (deliverToBilling: boolean) => !deliverToBilling,
     then: Yup.string()
-      .not(['Select an option'], 'Select a country')
-      .required('Required')
+      .not([''], 'Выберите страну')
+      .required('Требуется для заполнения')
   }),
   addressDelivery: Yup.string().when('deliverToBilling', {
     is: (deliverToBilling: boolean) => !deliverToBilling,
     then: Yup.string()
-      .min(2, 'Too Short!')
-      .max(100, 'Too Long!')
-      .required('Required')
+      .min(2, 'Адрес слишком короткий!')
+      .max(100, 'Адрес слишком длинный!')
+      .required('Требуется для заполнения')
   }),
   cityDelivery: Yup.string().when('deliverToBilling', {
     is: (deliverToBilling: boolean) => !deliverToBilling,
     then: Yup.string()
-      .min(2, 'Too Short!')
-      .max(50, 'Too Long!')
-      .required('Required')
+      .min(2, 'Город слишком короткий!')
+      .max(50, 'Город слишком длинный!')
+      .required('Требуется для заполнения')
   }),
   zipDelivery: Yup.string().when('deliverToBilling', {
     is: (deliverToBilling: boolean) => !deliverToBilling,
     then: Yup.string()
-      .min(5, 'Too Short!')
-      .max(9, 'Too Long!')
-      .required('Required')
+      .min(5, 'Индекс слишком короткий!')
+      .max(9, 'Индекс слишком длинный!')
+      .required('Требуется для заполнения')
   }),
   cardNum: Yup.string()
-    .min(12, 'Credit card number is too short!')
-    .max(19, 'Credit card number is too long!')
+    .min(12, 'Слишком короткий номер!')
+    .max(19, 'Слишком длинный номер!')
     .test(
       'test-number',
-      'Credit card number is invalid!',
+      'Неверный номер!',
       (value) => !!value && isValid(value)
     )
-    .required('Required'),
+    .required('Требуется для заполнения'),
   cardExp: Yup.string()
-    .length(5, 'Enter valid expiry date!')
-    .required('Required')
+    .length(5, 'Введите верный срок действия!')
+    .required('Требуется для заполнения')
     .test(
       'test-number',
-      'Expiry month is invalid!',
+      'Неверный месяц!',
       (value) =>
         !!value && +value.split('/')[0] <= 12 && +value.split('/')[0] >= 1
     )
     .test(
       'test-number',
-      'Expiry year is invalid!',
+      'Неверный год!',
       (value) =>
         !!value &&
         +value.split('/')[1] >=
           +(new Date().getFullYear() + '').split('').slice(2).join('')
     ),
-  cardCVC: Yup.string().length(3, 'Enter valid CVC!').required('Required'),
+  cardCVC: Yup.string()
+    .length(3, 'Введите действительный CVC!')
+    .required('Требуется для заполнения'),
   cardFullname: Yup.string()
-    .min(2, 'Too Short!')
-    .max(50, 'Too Long!')
-    .required('Required')
+    .min(2, 'Слишком короткое!')
+    .max(50, 'Слишком длинное!')
+    .required('Требуется для заполнения')
 });

@@ -10,7 +10,8 @@ import {
 } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 
-import { storeApi } from './api';
+import { categoriesApi } from './api/categoriesApi';
+import { storeApi } from './api/storeApi';
 import authReducer from './authSlice';
 import cartReducer from './cartSlice';
 
@@ -32,14 +33,15 @@ export const store = configureStore({
   reducer: {
     cart: persistReducerCart,
     auth: persistReducerAuth,
-    [storeApi.reducerPath]: storeApi.reducer
+    [storeApi.reducerPath]: storeApi.reducer,
+    [categoriesApi.reducerPath]: categoriesApi.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
       }
-    }).concat(storeApi.middleware)
+    }).concat(storeApi.middleware, categoriesApi.middleware)
 });
 
 export type RootState = ReturnType<typeof store.getState>;

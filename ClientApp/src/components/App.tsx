@@ -15,7 +15,7 @@ function App() {
   return (
     <>
       <Header setSearch={setSearch} />
-      <main className="mt-6 flex justify-center bg-white">
+      <main className="mt-6 flex flex-col items-center bg-white">
         <Routes>
           <Route path="/">
             <Route index element={<Products search={search} />} />

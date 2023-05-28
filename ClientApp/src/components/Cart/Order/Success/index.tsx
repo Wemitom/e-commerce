@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
+import Button from 'components/common/Button';
+
 const Success = () => {
   const navigate = useNavigate();
 
@@ -9,14 +11,9 @@ const Success = () => {
         <div className="flex h-8 w-8 items-center justify-center rounded-full border border-green-900 bg-green-500">
           ✓
         </div>
-        <h2 className="text-2xl font-bold">Thanks for your order!</h2>
+        <h2 className="text-2xl font-bold">Спасибо за заказ!</h2>
       </div>
-      <button
-        className="h-12 w-11/12 cursor-pointer rounded-md bg-accent text-white transition-colors duration-200 hover:bg-accent/90"
-        onClick={() => navigate('/')}
-      >
-        Return
-      </button>
+      <Button handleClick={() => navigate('/')}>Вернуться</Button>
     </div>
   );
 };

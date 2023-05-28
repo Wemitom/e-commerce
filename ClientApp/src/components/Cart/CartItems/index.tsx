@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
+
 import { RootState } from 'store';
 import { changeCount } from 'store/cartSlice';
 
@@ -67,7 +68,6 @@ const CartItems = ({
         <CartItem
           key={cartItem.item.id}
           {...cartItem.item}
-          image={cartItem.item.image ?? 'Placeholder.png'}
           count={cartItem.count}
           selectChosen={(id: number) => setChosenItems([...chosenItems, id])}
           unselectChosen={(id: number) =>

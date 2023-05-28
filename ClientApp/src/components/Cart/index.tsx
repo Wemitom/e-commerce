@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -23,28 +23,17 @@ const Cart = () => {
     chosenItemsId.includes(cartItem.item.id)
   );
 
-  useEffect(() => {
-    const main = document.getElementsByTagName('main')[0];
-    main.style.flexDirection = 'column';
-    main.style.alignItems = 'center';
-
-    return () => {
-      main.style.flexDirection = 'row';
-      main.style.alignItems = 'unset';
-    };
-  });
-
   return (
     <div className="w-11/12">
-      <p className="mb-5 w-full text-4xl font-bold">{`Cart${
-        cartCount ? '' : ' is empty'
+      <p className="mb-5 w-full text-4xl font-bold">{`Корзина${
+        cartCount ? '' : ' пуста'
       }`}</p>
       <div className="flex flex-col gap-6 sm:flex-row">
         <div className="w-full sm:w-8/12">
           {cartCount === 0 && (
             <p className="mt-3 text-xl">
-              Try using the search bar if you can`t find the items you are
-              looking for!
+              Используйте поиск, если не можете найти те товары, которые вы
+              ищите!
             </p>
           )}
           {cartCount > 0 && (
@@ -73,14 +62,16 @@ const Cart = () => {
                   })
                 }
               >
-                Order selected items
+                Заказать выбранные товары
               </button>
             </div>
             <div className="mb-6 p-3">
-              <h3 className="mb-3 text-xl font-bold">Selected items cost</h3>
+              <h3 className="mb-3 text-xl font-bold">
+                Стоимость выбранных товаров
+              </h3>
               <p className="flex justify-between">
                 <span>
-                  Items (
+                  Товары (
                   {chosenItems.reduce(
                     (count, cartItem) => count + cartItem.count,
                     0

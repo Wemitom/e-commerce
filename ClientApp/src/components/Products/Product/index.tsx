@@ -1,25 +1,19 @@
 import { useEffect, useState } from 'react';
 
-import { ReactComponent as Spinner } from 'public/spinner.svg';
 import { useDispatch, useSelector } from 'react-redux';
+
+import placeholder from 'public/placeholder.png';
+import { ReactComponent as Spinner } from 'public/spinner.svg';
 import { RootState } from 'store';
-import { useDeleteProductMutation, useGetImageQuery } from 'store/api';
+import { useGetImageQuery } from 'store/api/storeApi';
 import { addToCart, changeCount } from 'store/cartSlice';
-
-import placeholder from '../../../public/placeholder.png';
-
-export type Categories =
-  | 'electronics'
-  | 'jewelery'
-  | "men's clothing"
-  | "women's clothing";
 
 export type ProductType = {
   id: number;
   title: string;
   price: number;
-  image?: string;
-  category: Categories;
+  image?: string | null;
+  category: string;
 };
 
 const ChangeAmtBtn = ({
@@ -71,6 +65,7 @@ const Product = ({
 
   useEffect(() => {
     setImage(data ?? '');
+    console.log(data);
   }, [data]);
 
   return (

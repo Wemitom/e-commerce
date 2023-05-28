@@ -73,7 +73,6 @@ namespace db_back.Controllers
                 Response.Cookies.Append("jwt_token", stringToken, new Microsoft.AspNetCore.Http.CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
                     SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict
                 });
                 _logger.LogTrace($"[{DateTime.Now}] Attempt successful. Issued a token.\n");
