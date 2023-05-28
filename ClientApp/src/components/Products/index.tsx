@@ -19,6 +19,7 @@ import {
 
 import Product, { ProductType } from './Product';
 
+// TODO success toast and loading/error indication
 const AddProductForm = ({ closeModal }: { closeModal: () => void }) => {
   const [imageURL, setImageURL] = useState(`${placeholder}`);
   const reader = useRef(new FileReader());

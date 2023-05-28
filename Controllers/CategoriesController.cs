@@ -30,7 +30,7 @@ namespace db_back.Controllers
         }
 
         [HttpGet]
-        public async Task<JsonResult> Get()
+        public JsonResult Get()
         {
             _logger.LogTrace($"[{DateTime.Now}] GET req on /categories\n");
             DbDataReader reader;
@@ -41,7 +41,7 @@ namespace db_back.Controllers
                 using (var dbConnection = new DbConnection().connection)
                 {
                     OdbcCommand command = new OdbcCommand("SELECT * FROM CATEGORIES", dbConnection);
-                    reader = await command.ExecuteReaderAsync();
+                    reader = command.ExecuteReader();
 
 
                     var list = new List<string>();

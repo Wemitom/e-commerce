@@ -31,7 +31,7 @@ namespace db_back.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(Item[]), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
-        public async Task<JsonResult> Get()
+        public JsonResult Get()
         {
             _logger.LogTrace($"[{DateTime.Now}] GET req on /items\n");
             DbDataReader reader;
@@ -42,8 +42,7 @@ namespace db_back.Controllers
                 using (var dbConnection = new DbConnection().connection)
                 {
                     OdbcCommand command = new OdbcCommand("SELECT ITEM_ID, TITLE, PRICE, CATEGORY FROM ITEMS", dbConnection);
-                    reader = await command.ExecuteReaderAsync();
-
+                    reader = command.ExecuteReader();
 
                     var list = new List<Item>();
                     while (reader.Read())
@@ -78,7 +77,7 @@ namespace db_back.Controllers
         }
 
         [HttpGet("[action]/{id?}")]
-        public async Task<JsonResult?> GetImage(int id)
+        public JsonResult? GetImage(int id)
         {
             _logger.LogTrace($"[{DateTime.Now}] GET req on /getimage/{id}\n");
 
@@ -90,7 +89,7 @@ namespace db_back.Controllers
                 using var dbConnection = new DbConnection().connection;
                 OdbcCommand command = new OdbcCommand("SELECT IMAGE FROM ITEMS WHERE ITEM_ID=?", dbConnection);
                 command.Parameters.AddWithValue("@id", id);
-                reader = await command.ExecuteReaderAsync();
+                reader = command.ExecuteReader();
 
                 reader.Read();
                 if (reader.FieldCount != 0)
@@ -118,7 +117,7 @@ namespace db_back.Controllers
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
-        public async Task<dynamic> Delete([FromBody] NewItem item)
+        public dynamic Delete([FromBody] NewItem item)
         {
             _logger.LogTrace($"[{DateTime.Now}] POST req on /items\n");
 
@@ -131,7 +130,7 @@ namespace db_back.Controllers
                     command.Parameters.AddWithValue("@price", item.price);
                     command.Parameters.AddWithValue("@category", item.category);
                     command.Parameters.AddWithValue("@image", item.image != null ? Convert.FromBase64String(item.image) : null);
-                    await command.ExecuteNonQueryAsync();
+                    command.ExecuteNonQuery();
 
                     _logger.LogInformation($"[{DateTime.Now}] POST req on /items fulfilled with status code 200\n");
                     return StatusCode(200);
@@ -156,7 +155,7 @@ namespace db_back.Controllers
         [HttpDelete("{id?}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
-        public async Task<dynamic> Delete(int id)
+        public dynamic Delete(int id)
         {
             _logger.LogTrace($"[{DateTime.Now}] DELETE req on /items\n");
 
@@ -166,7 +165,7 @@ namespace db_back.Controllers
                 {
                     OdbcCommand command = new OdbcCommand("DELETE FROM ITEMS WHERE ITEM_ID=?", dbConnection);
                     command.Parameters.AddWithValue("@id", id);
-                    await command.ExecuteNonQueryAsync();
+                    command.ExecuteNonQuery();
 
                     _logger.LogInformation($"[{DateTime.Now}] DELETE req on /items fulfilled with status code 200\n");
                     return StatusCode(200);

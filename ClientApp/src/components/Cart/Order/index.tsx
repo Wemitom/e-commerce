@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import MaskedInput from 'react-text-mask';
 
 import Button from 'components/common/Button';
+import { useOrderMutation } from 'store/api/orderApi';
 import { CartItemType, changeCount } from 'store/cartSlice';
 import { classNames } from 'utils';
 
@@ -157,10 +158,36 @@ const InputAddress = ({
   );
 };
 
+export interface OrderData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  country: string;
+  address: string;
+  city: string;
+  zip: string;
+  deliverToBilling: boolean;
+  countryDelivery?: string;
+  addressDelivery?: string;
+  cityDelivery?: string;
+  zipDelivery?: string;
+  cardNum: string;
+  cardExp: string;
+  cardCVC: string;
+  cardFullname: string;
+}
+
+export interface ItemData {
+  id: number;
+  count: number;
+}
+
 const Order = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const [order] = useOrderMutation();
 
   return (
     <Formik
@@ -184,11 +211,18 @@ const Order = () => {
       }}
       validationSchema={OrderSchema}
       onSubmit={(data) => {
-        console.log(data);
-        state.orderedItems.forEach((item: CartItemType) =>
-          dispatch(changeCount({ id: item.item.id, count: 0 }))
-        );
-        navigate('success');
+        order({
+          orderData: data,
+          items: state.orderedItems.map((item: CartItemType) => ({
+            id: item.item.id,
+            count: item.count
+          }))
+        }).then(() => {
+          state.orderedItems.forEach((item: CartItemType) =>
+            dispatch(changeCount({ id: item.item.id, count: 0 }))
+          );
+          navigate('success');
+        });
       }}
     >
       {({ errors, touched, values, handleChange }) => (

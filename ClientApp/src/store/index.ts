@@ -11,6 +11,7 @@ import {
 import storage from 'redux-persist/lib/storage';
 
 import { categoriesApi } from './api/categoriesApi';
+import { orderApi } from './api/orderApi';
 import { storeApi } from './api/storeApi';
 import authReducer from './authSlice';
 import cartReducer from './cartSlice';
@@ -34,14 +35,19 @@ export const store = configureStore({
     cart: persistReducerCart,
     auth: persistReducerAuth,
     [storeApi.reducerPath]: storeApi.reducer,
-    [categoriesApi.reducerPath]: categoriesApi.reducer
+    [categoriesApi.reducerPath]: categoriesApi.reducer,
+    [orderApi.reducerPath]: orderApi.reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER]
       }
-    }).concat(storeApi.middleware, categoriesApi.middleware)
+    }).concat(
+      storeApi.middleware,
+      categoriesApi.middleware,
+      orderApi.middleware
+    )
 });
 
 export type RootState = ReturnType<typeof store.getState>;

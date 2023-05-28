@@ -129,6 +129,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
             }
           }}
         >
+          {/*TODO form validation*/}
           {({ errors, touched }) => (
             <Form className="flex w-full justify-center">
               <div className="flex w-80 flex-col items-center gap-6">
