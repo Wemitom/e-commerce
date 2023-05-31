@@ -32,7 +32,6 @@ namespace db_back.Controllers
         [HttpPost]
         public dynamic Post([FromBody] Order order)
         {
-            _logger.LogTrace($"[{DateTime.Now}] POST req on /orders\n");
             DbDataReader reader;
             JsonResult result;
 
@@ -69,10 +68,9 @@ namespace db_back.Controllers
                             command.ExecuteNonQuery();
                         }
                     }
-                    catch (Exception ex)
+                    catch
                     {
                         transaction.Rollback();
-                        _logger.LogError($"[{DateTime.Now}] Error trying to exec transaction\n{ex.Message}\nReq not fulfilled with status code 500");
 
                         result = new JsonResult(new { message = "Unknown error" })
                         {
@@ -82,14 +80,11 @@ namespace db_back.Controllers
                     }
 
                     transaction.Commit();
-                    _logger.LogInformation($"[{DateTime.Now}] POST Req on /orders fulfilled with status code 200\n");
                     return StatusCode(200);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError($"[{DateTime.Now}] Error trying to exec query\n{ex.Message}\nReq not fulfilled with status code 500");
-
                 result = new JsonResult(new { message = "Unknown error" })
                 {
                     StatusCode = 500

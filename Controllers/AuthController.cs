@@ -34,8 +34,6 @@ namespace db_back.Controllers
         [HttpPost]
         public StatusCodeResult Post(ManagerCredentials credentials)
         {
-            _logger.LogTrace($"[{DateTime.Now}] Auth attempt. username - {credentials.username}\n");
-
             using var dbConnection = new DbConnection().connection;
             OdbcCommand command = new OdbcCommand("SELECT 1 FROM MANAGERS WHERE USERNAME=? AND PASSWORD_HASH=?", dbConnection);
             command.Parameters.AddWithValue("@username", credentials.username);
@@ -75,11 +73,9 @@ namespace db_back.Controllers
                     HttpOnly = true,
                     SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict
                 });
-                _logger.LogTrace($"[{DateTime.Now}] Attempt successful. Issued a token.\n");
                 return StatusCode(200);
             }
 
-            _logger.LogTrace($"[{DateTime.Now}] Attempt failed.\n");
             return StatusCode(401);
         }
 

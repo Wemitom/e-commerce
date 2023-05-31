@@ -32,7 +32,6 @@ namespace db_back.Controllers
         [HttpGet]
         public JsonResult Get()
         {
-            _logger.LogTrace($"[{DateTime.Now}] GET req on /categories\n");
             DbDataReader reader;
             JsonResult result;
 
@@ -52,7 +51,6 @@ namespace db_back.Controllers
                         );
                     }
 
-                    _logger.LogInformation($"[{DateTime.Now}] GET Req on /categories fulfilled with status code 200\n");
                     result = new JsonResult(list)
                     {
                         StatusCode = 200
@@ -60,10 +58,8 @@ namespace db_back.Controllers
                 }
                 return result;
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError($"[{DateTime.Now}] Error trying to exec query\n{ex.Message}\nReq not fulfilled with status code 500");
-
                 result = new JsonResult(new { message = "Unknown error" })
                 {
                     StatusCode = 500

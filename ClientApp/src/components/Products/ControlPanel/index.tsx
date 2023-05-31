@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
 import Modal from 'components/Modal';
+import Dropdown from 'components/Products/ControlPanel/Dropdown';
 import { useAddProductMutation } from 'store/api';
 import { classNames, threeStateBool } from 'utils';
 
@@ -78,7 +79,7 @@ const ControlPanel = () => {
         <div
           ref={ref}
           className={classNames(
-            'flex gap-3 sm:flex-row flex-col',
+            'flex gap-3 sm:flex-row flex-col relative z-[5]',
             threeStateBool(
               show,
               'md:animate-slide-left animate-slide-bottom',
@@ -100,6 +101,8 @@ const ControlPanel = () => {
           >
             <span className="text-2xl">+</span> Добавить товар
           </button>
+
+          <Dropdown />
         </div>
 
         <button

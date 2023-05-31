@@ -33,7 +33,6 @@ namespace db_back.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
         public JsonResult Get()
         {
-            _logger.LogTrace($"[{DateTime.Now}] GET req on /items\n");
             DbDataReader reader;
             JsonResult result;
 
@@ -56,7 +55,6 @@ namespace db_back.Controllers
                         });
                     }
 
-                    _logger.LogInformation($"[{DateTime.Now}] GET Req on /items fulfilled with status code 200\n");
                     result = new JsonResult(list)
                     {
                         StatusCode = 200
@@ -64,10 +62,8 @@ namespace db_back.Controllers
                 }
                 return result;
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError($"[{DateTime.Now}] Error trying to exec query\n{ex.Message}\nReq not fulfilled with status code 500");
-
                 result = new JsonResult(new { message = "Unknown error" })
                 {
                     StatusCode = 500
@@ -79,8 +75,6 @@ namespace db_back.Controllers
         [HttpGet("[action]/{id?}")]
         public JsonResult? GetImage(int id)
         {
-            _logger.LogTrace($"[{DateTime.Now}] GET req on /getimage/{id}\n");
-
             DbDataReader reader;
             JsonResult result;
 
@@ -92,15 +86,11 @@ namespace db_back.Controllers
                 reader = command.ExecuteReader();
 
                 reader.Read();
-                if (reader.FieldCount != 0)
-                    _logger.LogInformation($"[{DateTime.Now}] Req on /getimage/items fulfilled with status code 200\n");
                 result = new JsonResult(new { image = reader[0] != System.DBNull.Value ? Convert.ToBase64String((byte[])reader[0]) : null }) { StatusCode = 200 };
                 return result;
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError($"[{DateTime.Now}] Error trying to exec query\n{ex.Message}\nReq not fulfilled with status code 500");
-
                 result = new JsonResult(new { message = "Unknown error" })
                 {
                     StatusCode = 500
@@ -119,8 +109,6 @@ namespace db_back.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
         public dynamic Post([FromBody] NewItem item)
         {
-            _logger.LogTrace($"[{DateTime.Now}] POST req on /items\n");
-
             try
             {
                 using (var dbConnection = new DbConnection().connection)
@@ -132,14 +120,11 @@ namespace db_back.Controllers
                     command.Parameters.AddWithValue("@image", item.image != null ? Convert.FromBase64String(item.image) : null);
                     command.ExecuteNonQuery();
 
-                    _logger.LogInformation($"[{DateTime.Now}] POST req on /items fulfilled with status code 200\n");
                     return StatusCode(200);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError($"[{DateTime.Now}] Error trying to exec query\n{ex.Message}\nReq not fulfilled with status code 500");
-
                 return new JsonResult(new ErrorResponse { code = ErrorCodes.Unknown, message = "Unknown error" })
                 {
                     StatusCode = 500
@@ -157,8 +142,6 @@ namespace db_back.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
         public dynamic Delete(int id)
         {
-            _logger.LogTrace($"[{DateTime.Now}] DELETE req on /items\n");
-
             try
             {
                 using (var dbConnection = new DbConnection().connection)
@@ -167,14 +150,11 @@ namespace db_back.Controllers
                     command.Parameters.AddWithValue("@id", id);
                     command.ExecuteNonQuery();
 
-                    _logger.LogInformation($"[{DateTime.Now}] DELETE req on /items fulfilled with status code 200\n");
                     return StatusCode(200);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError($"[{DateTime.Now}] Error trying to exec query\n{ex.Message}\nReq not fulfilled with status code 500");
-
                 return new JsonResult(new { message = "Unknown error" })
                 {
                     StatusCode = 500
@@ -191,8 +171,6 @@ namespace db_back.Controllers
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
         public dynamic Put([FromBody] NewItem item, int id)
         {
-            _logger.LogTrace($"[{DateTime.Now}] PUT req on /items\n");
-
             try
             {
                 using (var dbConnection = new DbConnection().connection)
@@ -205,14 +183,11 @@ namespace db_back.Controllers
                     command.Parameters.AddWithValue("@id", id);
                     command.ExecuteNonQuery();
 
-                    _logger.LogInformation($"[{DateTime.Now}] PUT req on /items fulfilled with status code 200\n");
                     return StatusCode(200);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError($"[{DateTime.Now}] Error trying to exec query\n{ex.Message}\nReq not fulfilled with status code 500");
-
                 return new JsonResult(new ErrorResponse { code = ErrorCodes.Unknown, message = "Unknown error" })
                 {
                     StatusCode = 500
