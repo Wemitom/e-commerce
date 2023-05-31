@@ -2,7 +2,7 @@ import { Chart } from 'react-google-charts';
 
 import Section from 'components/common/Section';
 import { ReactComponent as Spinner } from 'public/spinner.svg';
-import { useGetStatsQuery } from 'store/api/statsApi';
+import { useGetStatsQuery } from 'store/api';
 
 const Stats = () => {
   const { data, isLoading } = useGetStatsQuery();

@@ -6,7 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import MaskedInput from 'react-text-mask';
 
 import Button from 'components/common/Button';
-import { useOrderMutation } from 'store/api/orderApi';
+import { useOrderMutation } from 'store/api';
 import { CartItemType, changeCount } from 'store/cartSlice';
 import { classNames } from 'utils';
 

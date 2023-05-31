@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
+import CartItems from './CartItems';
 import { RootState } from '../../store';
 import { classNames } from '../../utils';
-import CartItems from './CartItems';
 
 const Cart = () => {
   const cartCount = useSelector((state: RootState) =>

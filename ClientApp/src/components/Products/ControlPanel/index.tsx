@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import Modal from 'components/Modal';
-import { useAddProductMutation } from 'store/api/storeApi';
+import { useAddProductMutation } from 'store/api';
 import { classNames, threeStateBool } from 'utils';
 
 import { ProductType } from '../Product';
@@ -14,7 +14,7 @@ const ControlPanel = () => {
   const [addProduct] = useAddProductMutation();
 
   const handleAddExamples = async () => {
-    const examples: Omit<ProductType, 'id'>[] = await (
+    const examples: Omit<ProductType & { image: string }, 'id'>[] = await (
       await fetch('data/examples.json')
     ).json();
 

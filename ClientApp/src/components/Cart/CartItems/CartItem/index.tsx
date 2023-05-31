@@ -1,13 +1,14 @@
 import { useDispatch } from 'react-redux';
 
 import placeholder from 'public/placeholder.png';
+import { ReactComponent as Spinner } from 'public/spinner.svg';
+import { useGetImageQuery } from 'store/api';
 import { changeCount } from 'store/cartSlice';
 
 const CartItem = ({
   id,
   title,
   price,
-  image,
   count,
   selectChosen,
   unselectChosen,
@@ -16,13 +17,13 @@ const CartItem = ({
   id: number;
   title: string;
   price: number;
-  image?: string | null;
   category: string;
   count: number;
   selectChosen: (id: number) => void;
   unselectChosen: (id: number) => void;
   chosen?: boolean;
 }) => {
+  const { data: image, isLoading } = useGetImageQuery(id);
   const dispatch = useDispatch();
 
   return (
@@ -41,14 +42,20 @@ const CartItem = ({
           }}
         />
       </div>
-      <div
-        className="h-24 w-2/12 bg-contain bg-center bg-no-repeat"
-        aria-label={title}
-        role="img"
-        style={{
-          backgroundImage: `url(${image ? image : placeholder})`
-        }}
-      />
+      {isLoading ? (
+        <div className="flex h-24 w-2/12 items-center justify-center">
+          <Spinner className="h-12 w-12 animate-spin" />
+        </div>
+      ) : (
+        <div
+          className="h-24 w-2/12 bg-contain bg-center bg-no-repeat"
+          aria-label={title}
+          role="img"
+          style={{
+            backgroundImage: `url(${image ? image : placeholder})`
+          }}
+        />
+      )}
       <div className="flex w-4/12 flex-col justify-between gap-y-3">
         <span>{title}</span>
         <span

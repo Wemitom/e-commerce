@@ -1,18 +1,15 @@
-import { useEffect } from 'react';
-
 import { useDispatch, useSelector } from 'react-redux';
 
 import placeholder from 'public/placeholder.png';
 import { ReactComponent as Spinner } from 'public/spinner.svg';
 import { RootState, useAppDispatch } from 'store';
-import { storeApi, useGetImageQuery } from 'store/api/storeApi';
+import { useGetImageQuery } from 'store/api';
 import { addToCart, changeCount } from 'store/cartSlice';
 
 export type ProductType = {
   id: number;
   title: string;
   price: number;
-  image: string | null;
   category: string;
 };
 
@@ -46,7 +43,7 @@ const ChangeAmtBtn = ({
 };
 
 const Product = ({
-  product: { id, title, price, category, image },
+  product: { id, title, price, category },
   handleDelete,
   handleEdit
 }: {
@@ -60,20 +57,9 @@ const Product = ({
   );
   const loggedIn = useSelector((state: RootState) => state.auth.loggedIn);
 
-  const { data, isLoading } = useGetImageQuery(id);
+  const { data: image, isLoading } = useGetImageQuery(id);
   const dispatch = useAppDispatch();
   const inCart = items?.count > 0;
-
-  useEffect(() => {
-    dispatch(
-      storeApi.util.updateQueryData('getProducts', undefined, (items) =>
-        items.map((item) => {
-          if (item.id === id) return { ...item, image: data ?? '' };
-          else return item;
-        })
-      )
-    );
-  }, [data, dispatch, id]);
 
   return (
     <>
@@ -123,7 +109,6 @@ const Product = ({
                       id,
                       title,
                       price,
-                      image,
                       category
                     })
                   )
@@ -133,7 +118,7 @@ const Product = ({
               </button>
             ) : (
               <div className="flex w-3/4 flex-row justify-center gap-3">
-                <ChangeAmtBtn product={{ id, title, price, image, category }} />
+                <ChangeAmtBtn product={{ id, title, price, category }} />
                 <input
                   type="number"
                   className="w-8/12 appearance-none text-center"
@@ -148,10 +133,7 @@ const Product = ({
                   }
                   value={items?.count || 0}
                 />
-                <ChangeAmtBtn
-                  product={{ id, title, price, image, category }}
-                  add
-                />
+                <ChangeAmtBtn product={{ id, title, price, category }} add />
               </div>
             )
           ) : (

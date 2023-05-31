@@ -5,10 +5,7 @@ import { useSelector } from 'react-redux';
 import Modal from 'components/Modal';
 import { ReactComponent as Spinner } from 'public/spinner.svg';
 import { RootState } from 'store';
-import {
-  useDeleteProductMutation,
-  useGetProductsQuery
-} from 'store/api/storeApi';
+import { useDeleteProductMutation, useGetProductsQuery } from 'store/api';
 
 import ControlPanel from './ControlPanel';
 import Product, { ProductType } from './Product';
@@ -136,7 +133,6 @@ const Products = ({ search }: { search: string }) => {
               title={editItem.title}
               category={editItem.category}
               price={editItem.price}
-              image={editItem.image ?? null}
               closeModal={() => setOpenEditProduct(false)}
               edit
             />

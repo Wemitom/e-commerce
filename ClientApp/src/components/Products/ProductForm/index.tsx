@@ -6,18 +6,18 @@ import * as Yup from 'yup';
 import { AsyncSelect, InputField } from 'components/Cart/Order';
 import Button from 'components/common/Button';
 import placeholder from 'public/placeholder.png';
-import { useGetCategoriesQuery } from 'store/api/categoriesApi';
 import {
   useAddProductMutation,
-  useEditProductMutation
-} from 'store/api/storeApi';
+  useEditProductMutation,
+  useGetCategoriesQuery,
+  useGetImageQuery
+} from 'store/api';
 
 interface EditProps {
   id: number;
   title: string;
   price: number;
   category: string;
-  image: string | null;
 }
 
 interface ProductEdit extends EditProps {
@@ -39,10 +39,9 @@ const ProductForm = ({
   title,
   price,
   category,
-  image,
   closeModal
 }: ProductProps) => {
-  console.log(image);
+  const { data: image } = useGetImageQuery(id!, { skip: !edit });
   const [imageURL, setImageURL] = useState(image ? image : placeholder);
   const reader = useRef(new FileReader());
   useEffect(() => {
