@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 import Modal from 'components/Modal';
+import Dialog from 'components/Modal/Dialog';
 import { ReactComponent as Spinner } from 'public/spinner.svg';
 import { RootState } from 'store';
 import { useDeleteProductMutation, useGetProductsQuery } from 'store/api';
@@ -90,36 +91,13 @@ const Products = ({ search }: { search: string }) => {
         </section>
 
         {loggedIn && (
-          <Modal
+          <Dialog
             open={open}
             setOpen={setOpen}
             title="Подтвердите действие"
-            center
-          >
-            <div className="flex h-36 flex-col justify-between">
-              <p className="mt-6">
-                Вы уверены что хотите удалить товар с id {deleteId}?
-              </p>
-
-              <div className="flex w-full gap-6 [&>button]:grow">
-                <button
-                  className="bg-accent hover:bg-accent/90 rounded-lg p-2 text-white"
-                  onClick={() => setOpen(false)}
-                >
-                  Нет
-                </button>
-                <button
-                  className="bg-accent hover:bg-accent/90 rounded-lg p-2 text-white"
-                  onClick={() => {
-                    deleteProduct(deleteId);
-                    setOpen(false);
-                  }}
-                >
-                  Да
-                </button>
-              </div>
-            </div>
-          </Modal>
+            question={`Вы уверены что хотите удалить товар с id ${deleteId}?`}
+            handleYes={() => deleteProduct(deleteId)}
+          />
         )}
 
         {loggedIn && editItem && (

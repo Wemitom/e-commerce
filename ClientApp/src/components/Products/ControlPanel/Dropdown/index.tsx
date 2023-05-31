@@ -5,7 +5,13 @@ import { ChevronDownIcon } from '@heroicons/react/20/solid';
 
 import { useGetCategoriesQuery } from 'store/api';
 
-export default function Dropdown() {
+export default function Dropdown({
+  handleAdd,
+  handleDelete
+}: {
+  handleAdd: () => void;
+  handleDelete: (val: string) => void;
+}) {
   const { data: categories } = useGetCategoriesQuery();
 
   return (
@@ -32,13 +38,14 @@ export default function Dropdown() {
           <div className="p-1">
             <Menu.Item>
               {({ active }) => (
-                <span
+                <button
+                  onClick={handleAdd}
                   className={`${
                     active ? 'text-accent !bg-white' : 'text-white-900'
                   } bg-accent group relative z-20 flex w-full items-center rounded-md p-2 text-sm text-white`}
                 >
                   Добавить новую
-                </span>
+                </button>
               )}
             </Menu.Item>
           </div>
@@ -55,7 +62,7 @@ export default function Dropdown() {
                       {option}
                       <button
                         className="[&>div]:hover:bg-accent/80 top-0 w-full"
-                        // onClick={() => handleDelete(option)}
+                        onClick={() => handleDelete(option)}
                       >
                         <div className="absolute right-0 h-[2px] w-4 rotate-45 bg-black transition-colors duration-300" />
                         <div className="absolute right-0 h-[2px] w-4 -rotate-45 bg-black transition-colors duration-300" />

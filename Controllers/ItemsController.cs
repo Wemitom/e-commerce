@@ -166,6 +166,7 @@ namespace db_back.Controllers
         /// <response code="200">Успех</response>
         /// <response code="401">Ошибка авторизации</response>
         /// <response code="500">Ошибка</response>
+        [Authorize]
         [HttpPut("{id?}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]

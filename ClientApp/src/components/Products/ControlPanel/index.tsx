@@ -3,25 +3,45 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 
 import Modal from 'components/Modal';
+import Dialog from 'components/Modal/Dialog';
 import Dropdown from 'components/Products/ControlPanel/Dropdown';
-import { useAddProductMutation } from 'store/api';
+import {
+  useAddCategoryMutation,
+  useAddProductMutation,
+  useDeleteCategoryMutation
+} from 'store/api';
 import { classNames, threeStateBool } from 'utils';
 
 import { ProductType } from '../Product';
 import ProductForm from '../ProductForm';
+import CategoryForm from './CategoryForm';
 
 const ControlPanel = () => {
   const [show, setShow] = useState<boolean | null>(null);
 
   const [openAddProduct, setOpenAddProduct] = useState(false);
   const [addProduct] = useAddProductMutation();
+  const [openAddCategory, setOpenAddCategory] = useState(false);
+  const [addCategory] = useAddCategoryMutation();
+
+  const [openDeleteCategory, setOpenDeleteCategory] = useState(false);
+  const [category, setCategory] = useState('');
+  const [deleteCategory] = useDeleteCategoryMutation();
 
   const handleAddExamples = async () => {
-    const examples: Omit<ProductType & { image: string }, 'id'>[] = await (
-      await fetch('data/examples.json')
-    ).json();
+    const examples: {
+      categories: string[];
+      items: Omit<ProductType & { image: string }, 'id'>[];
+    } = await (await fetch('data/examples.json')).json();
 
-    Promise.all(examples.map((example) => addProduct(example))).then(
+    await Promise.all(
+      examples.categories.map((example) => deleteCategory(example))
+    );
+    await Promise.all(
+      examples.categories.map((example) => addCategory(example))
+    );
+
+    Promise.all(examples.items.map((example) => addProduct(example))).then(
       () =>
         toast.success('Товары успешно добавлены!', {
           position: 'top-right',
@@ -102,7 +122,13 @@ const ControlPanel = () => {
             <span className="text-2xl">+</span> Добавить товар
           </button>
 
-          <Dropdown />
+          <Dropdown
+            handleAdd={() => setOpenAddCategory(true)}
+            handleDelete={(val) => {
+              setOpenDeleteCategory(true);
+              setCategory(val);
+            }}
+          />
         </div>
 
         <button
@@ -155,6 +181,22 @@ const ControlPanel = () => {
       >
         <ProductForm closeModal={() => setOpenAddProduct(false)} />
       </Modal>
+
+      <Modal
+        title="Новая категория"
+        open={openAddCategory}
+        setOpen={setOpenAddCategory}
+      >
+        <CategoryForm closeModal={() => setOpenAddCategory(false)} />
+      </Modal>
+
+      <Dialog
+        open={openDeleteCategory}
+        setOpen={setOpenDeleteCategory}
+        title="Подтвердите действие"
+        question={`Вы уверены что хотите удалить категорию ${category}? Это приведет к удалению всех продуктов этой категории!`}
+        handleYes={() => deleteCategory(category)}
+      />
     </>
   );
 };

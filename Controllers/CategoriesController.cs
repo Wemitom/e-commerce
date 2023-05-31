@@ -1,20 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Data.Odbc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
-using db_back.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 namespace db_back.Controllers
 {
@@ -67,5 +57,56 @@ namespace db_back.Controllers
                 return result;
             }
         }
+
+        [Authorize]
+        [HttpDelete("{category?}")]
+        public dynamic Delete(string category)
+        {
+            var decodedCategory = Uri.UnescapeDataString(category);
+            try
+            {
+                using (var dbConnection = new DbConnection().connection)
+                {
+                    OdbcCommand command = new OdbcCommand("DELETE FROM CATEGORIES WHERE CATEGORY=?", dbConnection);
+                    command.Parameters.AddWithValue("@category", decodedCategory);
+                    command.ExecuteNonQuery();
+
+                    return StatusCode(200);
+                }
+            }
+            catch
+            {
+                return new JsonResult(new { message = "Unknown error" })
+                {
+                    StatusCode = 500
+                };
+            }
+        }
+
+        [Authorize]
+        [HttpPost("{category?}")]
+        public dynamic Post([FromRoute] string category)
+        {
+            var decodedCategory = Uri.UnescapeDataString(category);
+            try
+            {
+                using (var dbConnection = new DbConnection().connection)
+                {
+                    OdbcCommand command = new OdbcCommand("INSERT INTO CATEGORIES VALUES(?)", dbConnection);
+                    command.Parameters.AddWithValue("@category", decodedCategory);
+                    command.ExecuteNonQuery();
+
+                    return StatusCode(200);
+                }
+            }
+            catch
+            {
+                return new JsonResult(new { message = "Unknown error" })
+                {
+                    StatusCode = 500
+                };
+            }
+        }
+
     }
 }

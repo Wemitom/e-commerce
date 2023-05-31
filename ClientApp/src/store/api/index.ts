@@ -69,6 +69,28 @@ export const storeApi = createApi({
       query: () => ({ url: 'categories', method: 'GET' }),
       providesTags: ['Categories']
     }),
+    addCategory: builder.mutation<
+      { message: string; code: number } | undefined,
+      string
+    >({
+      query: (category) => ({
+        url: `categories/${encodeURI(category)}`,
+        method: 'POST'
+      }),
+      invalidatesTags: (result, error) =>
+        !result && !error ? ['Categories'] : []
+    }),
+    deleteCategory: builder.mutation<
+      { message: string; code: number } | undefined,
+      string
+    >({
+      query: (category) => ({
+        url: `categories/${encodeURI(category)}`,
+        method: 'DELETE'
+      }),
+      invalidatesTags: (result, error) =>
+        !result && !error ? ['Categories', 'Products'] : []
+    }),
     getStats: builder.query<StatsType, void>({
       query: () => ({
         url: 'stats/byCategory',
@@ -101,6 +123,8 @@ export const {
   useDeleteProductMutation,
   useEditProductMutation,
   useGetCategoriesQuery,
+  useDeleteCategoryMutation,
+  useAddCategoryMutation,
   useGetStatsQuery,
   useOrderMutation
 } = storeApi;

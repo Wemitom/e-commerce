@@ -64,7 +64,6 @@ const ProductForm = ({
     useEditProductMutation();
 
   useEffect(() => {
-    console.log(isErrorAdd);
     if (isSuccessAdd || isSuccessEdit)
       toast.success(
         isSuccessAdd ? 'Товар успешно добавлен!' : 'Товар отредактирован!',
