@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { Form, Formik } from 'formik';
+import { toast } from 'react-toastify';
 import * as Yup from 'yup';
 
 import { AsyncSelect, InputField } from 'components/Cart/Order';
@@ -32,7 +33,6 @@ interface ProductAdd extends Partial<EditProps> {
 
 type ProductProps = ProductAdd | ProductEdit;
 
-// TODO success toast and loading/error indication
 const ProductForm = ({
   edit,
   id,
@@ -58,8 +58,39 @@ const ProductForm = ({
   }, []);
 
   const { data, isLoading } = useGetCategoriesQuery();
-  const [addProduct] = useAddProductMutation();
-  const [editProduct] = useEditProductMutation();
+  const [addProduct, { isSuccess: isSuccessAdd, isError: isErrorAdd }] =
+    useAddProductMutation();
+  const [editProduct, { isSuccess: isSuccessEdit, isError: isErrorEdit }] =
+    useEditProductMutation();
+
+  useEffect(() => {
+    console.log(isErrorAdd);
+    if (isSuccessAdd || isSuccessEdit)
+      toast.success(
+        isSuccessAdd ? 'Товар успешно добавлен!' : 'Товар отредактирован!',
+        {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        }
+      );
+    else if (isErrorAdd || isErrorEdit)
+      toast.error('Возникла ошибка!', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: 'light'
+      });
+  }, [isSuccessAdd, isErrorAdd, isSuccessEdit, isErrorEdit]);
 
   return (
     <Formik
@@ -90,14 +121,14 @@ const ProductForm = ({
           .not([''], 'Выберите категорию')
           .required('Требуется для заполнения')
       })}
-      onSubmit={async (data) => {
+      onSubmit={(data) => {
         edit
           ? editProduct({
               id,
               ...data,
               price: +data.price,
               image: imageURL.split(',')[1]
-            })
+            }).then(() => closeModal())
           : addProduct({
               ...data,
               price: +data.price,
@@ -172,7 +203,7 @@ const ProductForm = ({
           </div>
 
           <Button handleClick={() => console.log('submited')} submit>
-            Создать
+            {edit ? 'Сохранить' : 'Создать'}
           </Button>
         </Form>
       )}

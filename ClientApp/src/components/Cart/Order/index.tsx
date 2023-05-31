@@ -187,7 +187,16 @@ const Order = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [order] = useOrderMutation();
+  const [order, { isSuccess, isError }] = useOrderMutation();
+
+  useEffect(() => {
+    if (isSuccess) {
+      state.orderedItems.forEach((item: CartItemType) =>
+        dispatch(changeCount({ id: item.item.id, count: 0 }))
+      );
+      navigate('success');
+    }
+  }, [dispatch, isSuccess, navigate, state.orderedItems]);
 
   return (
     <Formik
@@ -211,18 +220,12 @@ const Order = () => {
       }}
       validationSchema={OrderSchema}
       onSubmit={(data) => {
-        //TODO Error handling
         order({
           orderData: data,
           items: state.orderedItems.map((item: CartItemType) => ({
             id: item.item.id,
             count: item.count
           }))
-        }).then(() => {
-          state.orderedItems.forEach((item: CartItemType) =>
-            dispatch(changeCount({ id: item.item.id, count: 0 }))
-          );
-          navigate('success');
         });
       }}
     >
@@ -368,10 +371,15 @@ const Order = () => {
           </div>
 
           <div className="mb-6 flex h-fit w-full flex-col rounded-md bg-slate-100">
-            <div className="mb-6 flex justify-center border-b p-6">
+            <div className="mb-6 flex flex-col items-center justify-center border-b p-6">
               <Button handleClick={() => console.log('submited')} submit>
                 Заказать
               </Button>
+              {isError && (
+                <p className="text-sm text-red-600">
+                  Ошибка при оформлении заказа!
+                </p>
+              )}
             </div>
             <div className="mb-6 p-3">
               <h3 className="mb-3 text-xl font-bold">Общая стоимость</h3>

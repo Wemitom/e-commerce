@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { toast } from 'react-toastify';
+
 import Modal from 'components/Modal';
 import { useAddProductMutation } from 'store/api';
 import { classNames, threeStateBool } from 'utils';
@@ -18,7 +20,30 @@ const ControlPanel = () => {
       await fetch('data/examples.json')
     ).json();
 
-    Promise.all(examples.map((example) => addProduct(example)));
+    Promise.all(examples.map((example) => addProduct(example))).then(
+      () =>
+        toast.success('Товары успешно добавлены!', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        }),
+      () =>
+        toast.error('Возникла ошибка!', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        })
+    );
   };
 
   const ref = useRef<HTMLDivElement | null>(null);

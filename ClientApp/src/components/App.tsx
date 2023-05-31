@@ -2,6 +2,8 @@ import { useState } from 'react';
 import '../main.css';
 
 import { Route, Routes } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.min.css';
 
 import Cart from './Cart';
 import Order from './Cart/Order';
@@ -29,6 +31,19 @@ function App() {
           </Route>
         </Routes>
       </main>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={50000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </>
   );
 }
