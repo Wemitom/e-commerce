@@ -35,7 +35,8 @@ export const storeApi = createApi({
         responseHandler: async (res) => {
           const { image } = await res.json();
           return image ? `data:image/png;base64,${image}` : image;
-        }
+        },
+        providesTags: ['Products']
       })
     }),
     deleteProduct: builder.mutation<
@@ -48,6 +49,18 @@ export const storeApi = createApi({
       }),
       invalidatesTags: (result, error) =>
         !result && !error ? ['Products'] : []
+    }),
+    editProduct: builder.mutation<
+      { message: string; code: number } | undefined,
+      ProductType
+    >({
+      query: (product) => ({
+        url: `${product.id}`,
+        method: 'PUT',
+        body: product
+      }),
+      invalidatesTags: (result, error) =>
+        !result && !error ? ['Products'] : []
     })
   })
 });
@@ -56,5 +69,6 @@ export const {
   useGetProductsQuery,
   useAddProductMutation,
   useGetImageQuery,
-  useDeleteProductMutation
+  useDeleteProductMutation,
+  useEditProductMutation
 } = storeApi;

@@ -211,6 +211,7 @@ const Order = () => {
       }}
       validationSchema={OrderSchema}
       onSubmit={(data) => {
+        //TODO Error handling
         order({
           orderData: data,
           items: state.orderedItems.map((item: CartItemType) => ({

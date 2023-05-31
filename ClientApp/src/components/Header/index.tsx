@@ -1,7 +1,12 @@
 import { useState } from 'react';
 
-import { MagnifyingGlassIcon, KeyIcon } from '@heroicons/react/20/solid';
-import { HomeIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import {
+  HomeIcon,
+  ShoppingCartIcon,
+  KeyIcon,
+  ChartPieIcon
+} from '@heroicons/react/24/outline';
 import { Form, Formik } from 'formik';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -57,20 +62,18 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
               <p className="hidden sm:block">Корзина</p>
             </li>
           )}
-          <li
-            className={classNames(
-              'cursor-pointer sm:ml-auto sm:mr-16 sm:hidden',
-              pathname === '/' ? '' : 'hidden'
-            )}
-          >
-            <MagnifyingGlassIcon
+          {loggedIn && (
+            <li
               className={classNames(
-                'h-8 w-8 transition-color duration-200',
-                show ? 'fill-gray-500' : 'fill-black'
+                'flex w-10 cursor-pointer flex-col items-center text-center sm:ml-6 relative',
+                pathname === '/stats' ? 'hidden' : ''
               )}
-              onClick={() => setShow(!show)}
-            />
-          </li>
+              onClick={() => navigate('/stats')}
+            >
+              <ChartPieIcon className="h-8 w-8" />
+              <p className="hidden sm:block">Статистика</p>
+            </li>
+          )}
           <li
             className={classNames(
               'flex w-10 cursor-pointer flex-col items-center text-center sm:ml-6 relative',
@@ -86,6 +89,20 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
           >
             <KeyIcon className="h-8 w-8" />
             <p className="hidden sm:block">{!loggedIn ? 'Войти' : 'Выйти'}</p>
+          </li>
+          <li
+            className={classNames(
+              'cursor-pointer sm:ml-auto sm:mr-16 sm:hidden',
+              pathname === '/' ? '' : 'hidden'
+            )}
+          >
+            <MagnifyingGlassIcon
+              className={classNames(
+                'h-8 w-8 transition-color duration-200',
+                show ? 'fill-gray-500' : 'fill-black'
+              )}
+              onClick={() => setShow(!show)}
+            />
           </li>
           <li
             className={classNames(

@@ -22,9 +22,9 @@ namespace db_back.Controllers
     [Route("[controller]")]
     public class OrdersController : ControllerBase
     {
-        private readonly ILogger<ItemsController> _logger;
+        private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(ILogger<ItemsController> logger)
+        public OrdersController(ILogger<OrdersController> logger)
         {
             _logger = logger;
         }
@@ -48,7 +48,7 @@ namespace db_back.Controllers
                     var transaction = dbConnection.BeginTransaction();
                     try
                     {
-                        command = new OdbcCommand("INSERT INTO ORDERS VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", dbConnection, transaction);
+                        command = new OdbcCommand("INSERT INTO ORDERS(ORDER_ID, FULL_NAME, EMAIL, BILLING_ADDRESS, DELIVERY_ADDRESS, CREDIT_NUM, CREDIT_EXP, CREDIT_CVC, CREDIT_HOLDER) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", dbConnection, transaction);
                         command.Parameters.AddWithValue("@1", id);
                         command.Parameters.AddWithValue("@2", order.orderData.lastName + " " + order.orderData.firstName);
                         command.Parameters.AddWithValue("@3", order.orderData.email);

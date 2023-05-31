@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
 
 import placeholder from 'public/placeholder.png';
 import { ReactComponent as Spinner } from 'public/spinner.svg';
-import { RootState } from 'store';
-import { useGetImageQuery } from 'store/api/storeApi';
+import { RootState, useAppDispatch } from 'store';
+import { storeApi, useGetImageQuery } from 'store/api/storeApi';
 import { addToCart, changeCount } from 'store/cartSlice';
 
 export type ProductType = {
   id: number;
   title: string;
   price: number;
-  image?: string | null;
+  image: string | null;
   category: string;
 };
 
@@ -46,11 +46,13 @@ const ChangeAmtBtn = ({
 };
 
 const Product = ({
-  product: { id, title, price, category },
-  handleDelete
+  product: { id, title, price, category, image },
+  handleDelete,
+  handleEdit
 }: {
   product: ProductType;
   handleDelete: (id: number) => void;
+  handleEdit: (id: number) => void;
 }) => {
   const items = useSelector(
     (state: RootState) =>
@@ -59,14 +61,19 @@ const Product = ({
   const loggedIn = useSelector((state: RootState) => state.auth.loggedIn);
 
   const { data, isLoading } = useGetImageQuery(id);
-  const [image, setImage] = useState(data ?? '');
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const inCart = items?.count > 0;
 
   useEffect(() => {
-    setImage(data ?? '');
-    console.log(data);
-  }, [data]);
+    dispatch(
+      storeApi.util.updateQueryData('getProducts', undefined, (items) =>
+        items.map((item) => {
+          if (item.id === id) return { ...item, image: data ?? '' };
+          else return item;
+        })
+      )
+    );
+  }, [data, dispatch, id]);
 
   return (
     <>
@@ -106,45 +113,54 @@ const Product = ({
           {title}
         </h3>
         <div className="mt-3 flex w-full justify-center">
-          {!inCart ? (
-            <button
-              className="bg-accent hover:bg-accent/90 rounded-lg p-2 text-white"
-              onClick={() =>
-                dispatch(
-                  addToCart({
-                    id,
-                    title,
-                    price,
-                    image,
-                    category
-                  })
-                )
-              }
-            >
-              Добавить в корзину
-            </button>
-          ) : (
-            <div className="flex w-3/4 flex-row justify-center gap-3">
-              <ChangeAmtBtn product={{ id, title, price, image, category }} />
-              <input
-                type="number"
-                className="w-8/12 appearance-none text-center"
-                min={1}
-                onChange={(e) =>
+          {!loggedIn ? (
+            !inCart ? (
+              <button
+                className="bg-accent hover:bg-accent/90 rounded-lg p-2 text-white"
+                onClick={() =>
                   dispatch(
-                    changeCount({
+                    addToCart({
                       id,
-                      count: +e.target.value
+                      title,
+                      price,
+                      image,
+                      category
                     })
                   )
                 }
-                value={items?.count || 0}
-              />
-              <ChangeAmtBtn
-                product={{ id, title, price, image, category }}
-                add
-              />
-            </div>
+              >
+                Добавить в корзину
+              </button>
+            ) : (
+              <div className="flex w-3/4 flex-row justify-center gap-3">
+                <ChangeAmtBtn product={{ id, title, price, image, category }} />
+                <input
+                  type="number"
+                  className="w-8/12 appearance-none text-center"
+                  min={1}
+                  onChange={(e) =>
+                    dispatch(
+                      changeCount({
+                        id,
+                        count: +e.target.value
+                      })
+                    )
+                  }
+                  value={items?.count || 0}
+                />
+                <ChangeAmtBtn
+                  product={{ id, title, price, image, category }}
+                  add
+                />
+              </div>
+            )
+          ) : (
+            <button
+              className="bg-accent hover:bg-accent/90 rounded-lg p-2 text-white"
+              onClick={() => handleEdit(id)}
+            >
+              Редактировать
+            </button>
           )}
         </div>
       </div>

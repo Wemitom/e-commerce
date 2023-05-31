@@ -117,7 +117,7 @@ namespace db_back.Controllers
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
-        public dynamic Delete([FromBody] NewItem item)
+        public dynamic Post([FromBody] NewItem item)
         {
             _logger.LogTrace($"[{DateTime.Now}] POST req on /items\n");
 
@@ -176,6 +176,44 @@ namespace db_back.Controllers
                 _logger.LogError($"[{DateTime.Now}] Error trying to exec query\n{ex.Message}\nReq not fulfilled with status code 500");
 
                 return new JsonResult(new { message = "Unknown error" })
+                {
+                    StatusCode = 500
+                };
+            }
+        }
+
+        /// <returns></returns>
+        /// <response code="200">Успех</response>
+        /// <response code="401">Ошибка авторизации</response>
+        /// <response code="500">Ошибка</response>
+        [HttpPut("{id?}")]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
+        public dynamic Put([FromBody] NewItem item, int id)
+        {
+            _logger.LogTrace($"[{DateTime.Now}] PUT req on /items\n");
+
+            try
+            {
+                using (var dbConnection = new DbConnection().connection)
+                {
+                    OdbcCommand command = new OdbcCommand("UPDATE ITEMS SET TITLE=?, PRICE=?, CATEGORY=?, IMAGE=? WHERE ITEM_ID=?", dbConnection);
+                    command.Parameters.AddWithValue("@title", item.title);
+                    command.Parameters.AddWithValue("@price", item.price);
+                    command.Parameters.AddWithValue("@category", item.category);
+                    command.Parameters.AddWithValue("@image", item.image != null ? Convert.FromBase64String(item.image) : null);
+                    command.Parameters.AddWithValue("@id", id);
+                    command.ExecuteNonQuery();
+
+                    _logger.LogInformation($"[{DateTime.Now}] PUT req on /items fulfilled with status code 200\n");
+                    return StatusCode(200);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"[{DateTime.Now}] Error trying to exec query\n{ex.Message}\nReq not fulfilled with status code 500");
+
+                return new JsonResult(new ErrorResponse { code = ErrorCodes.Unknown, message = "Unknown error" })
                 {
                     StatusCode = 500
                 };

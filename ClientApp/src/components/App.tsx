@@ -8,6 +8,7 @@ import Order from './Cart/Order';
 import Success from './Cart/Order/Success';
 import Header from './Header';
 import Products from './Products';
+import Stats from './Stats';
 
 function App() {
   const [search, setSearch] = useState('');
@@ -24,7 +25,7 @@ function App() {
               <Route path="order" element={<Order />} />
               <Route path="order/success" element={<Success />} />
             </Route>
-            <Route path="auth" element={<></>} />
+            <Route path="stats" element={<Stats />} />
           </Route>
         </Routes>
       </main>
