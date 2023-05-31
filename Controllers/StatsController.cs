@@ -1,20 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
 using System.Data.Odbc;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using db_back.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 namespace db_back.Controllers
 {
@@ -29,6 +20,7 @@ namespace db_back.Controllers
             _logger = logger;
         }
 
+        [Authorize]
         [HttpGet("byCategory")]
         public JsonResult Get()
         {
@@ -71,6 +63,7 @@ namespace db_back.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet("byYear")]
         public JsonResult GetYear()
         {

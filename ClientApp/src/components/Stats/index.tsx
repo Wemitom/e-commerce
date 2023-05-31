@@ -5,10 +5,16 @@ import { ReactComponent as Spinner } from 'public/spinner.svg';
 import { useGetStatsByCategoryQuery, useGetStatsByYearQuery } from 'store/api';
 
 const Stats = () => {
-  const { data: dataByCategory, isLoading: isLoadingByCategory } =
-    useGetStatsByCategoryQuery();
-  const { data: dataByYear, isLoading: isLoadingByYear } =
-    useGetStatsByYearQuery();
+  const {
+    data: dataByCategory,
+    isLoading: isLoadingByCategory,
+    isError: isErrorByCategory
+  } = useGetStatsByCategoryQuery();
+  const {
+    data: dataByYear,
+    isLoading: isLoadingByYear,
+    isError: isErrorByYear
+  } = useGetStatsByYearQuery();
 
   return (
     <div className="flex w-full justify-between gap-3 px-6 [&>div]:grow">
@@ -19,7 +25,7 @@ const Stats = () => {
               <Spinner className="h-12 w-12 animate-spin" />
               Загрузка...
             </div>
-          ) : (
+          ) : !isErrorByCategory ? (
             <Chart
               chartType="PieChart"
               data={dataByCategory}
@@ -33,6 +39,10 @@ const Stats = () => {
                 }
               }}
             />
+          ) : (
+            <p className="text-center font-bold text-red-600">
+              При загрузке возникла ошибка
+            </p>
           )}
         </Section>
       </div>
@@ -44,7 +54,7 @@ const Stats = () => {
               <Spinner className="h-12 w-12 animate-spin" />
               Загрузка...
             </div>
-          ) : (
+          ) : !isErrorByYear ? (
             <Chart
               chartType="Bar"
               data={dataByYear}
@@ -56,6 +66,10 @@ const Stats = () => {
                 }
               }}
             />
+          ) : (
+            <p className="text-center font-bold text-red-600">
+              При загрузке возникла ошибка
+            </p>
           )}
         </Section>
       </div>
