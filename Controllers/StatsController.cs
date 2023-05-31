@@ -70,5 +70,47 @@ namespace db_back.Controllers
                 return result;
             }
         }
+
+        [HttpGet("byYear")]
+        public JsonResult GetYear()
+        {
+            DbDataReader reader;
+            JsonResult result;
+
+            try
+            {
+                using (var dbConnection = new DbConnection().connection)
+                {
+                    OdbcCommand command = new OdbcCommand("SELECT * FROM STATS_BY_YEAR()", dbConnection);
+                    reader = command.ExecuteReader();
+
+                    var list = new List<Stat>();
+                    while (reader.Read())
+                    {
+                        list.Add(
+                          new Stat
+                          {
+                              label = Convert.ToString((int)reader["YEAR"]),
+                              data = (int)reader["COUNT"]
+                          }
+                        );
+                    }
+
+                    result = new JsonResult(list)
+                    {
+                        StatusCode = 200
+                    };
+                }
+                return result;
+            }
+            catch
+            {
+                result = new JsonResult(new { message = "Unknown error" })
+                {
+                    StatusCode = 500
+                };
+                return result;
+            }
+        }
     }
 }

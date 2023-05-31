@@ -91,7 +91,7 @@ export const storeApi = createApi({
       invalidatesTags: (result, error) =>
         !result && !error ? ['Categories', 'Products'] : []
     }),
-    getStats: builder.query<StatsType, void>({
+    getStatsByCategory: builder.query<StatsType, void>({
       query: () => ({
         url: 'stats/byCategory',
         method: 'GET',
@@ -99,6 +99,20 @@ export const storeApi = createApi({
           const data: { label: string; data: number }[] = await res.json(),
             stats: StatsType = [['Категория', 'Сумма']];
           data.forEach((stat) => stats.push([stat.label, stat.data]));
+          return stats;
+        }
+      })
+    }),
+    getStatsByYear: builder.query<StatsType, void>({
+      query: () => ({
+        url: 'stats/byYear',
+        method: 'GET',
+        responseHandler: async (res) => {
+          const data: { label: string; data: number }[] = await res.json(),
+            stats: StatsType = [['Год', 'Кол-во заказов']];
+          data.forEach((stat) => stats.push([stat.label, stat.data]));
+          if (stats.length === 2)
+            return [stats[0], [(+stats[1][0] - 1).toString(), 0], stats[1]];
           return stats;
         }
       })
@@ -125,6 +139,7 @@ export const {
   useGetCategoriesQuery,
   useDeleteCategoryMutation,
   useAddCategoryMutation,
-  useGetStatsQuery,
+  useGetStatsByCategoryQuery,
+  useGetStatsByYearQuery,
   useOrderMutation
 } = storeApi;
