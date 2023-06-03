@@ -83,7 +83,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
               if (!loggedIn) setShowLogin(true);
               else {
                 dispatcher(logOut());
-                fetch('/auth/logout');
+                fetch('/api/auth/logout');
               }
             }}
           >
@@ -123,7 +123,7 @@ const Header = ({ setSearch }: { setSearch: (value: string) => void }) => {
           initialValues={{ username: '', password: '' }}
           onSubmit={async (data) => {
             const res = (
-              await fetch('/auth', {
+              await fetch('/api/auth', {
                 body: JSON.stringify(data),
                 method: 'POST',
                 headers: {

@@ -1,108 +1,79 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Data.Odbc;
+using System.Threading.Tasks;
 using db_back.Models;
+using db_back.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace db_back.Controllers
 {
+    /// <summary>
+    /// Controller for handling statistics.
+    /// </summary>
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/stats")]
     public class StatsController : ControllerBase
     {
-        private readonly ILogger<ItemsController> _logger;
+        private readonly ILogger<StatsController> _logger;
+        private readonly IStatsRepository _repository;
 
-        public StatsController(ILogger<ItemsController> logger)
+        public StatsController(ILogger<StatsController> logger, IStatsRepository repository)
         {
             _logger = logger;
+            _repository = repository;
         }
 
+        /// <summary>
+        /// Retrieve statistics by category.
+        /// </summary>
+        /// <returns>A list of statistics by category.</returns>
         [Authorize]
         [HttpGet("byCategory")]
-        public JsonResult Get()
+        public async Task<ActionResult> Get()
         {
-            DbDataReader reader;
-            JsonResult result;
-
             try
             {
-                using (var dbConnection = new DbConnection().connection)
+                var stats = await _repository.GetStatsByCategoryAsync();
+
+                if (stats == null || stats.Count == 0)
                 {
-                    OdbcCommand command = new OdbcCommand("SELECT * FROM STATS", dbConnection);
-                    reader = command.ExecuteReader();
-
-                    var list = new List<Stat>();
-                    while (reader.Read())
-                    {
-                        list.Add(
-                          new Stat
-                          {
-                              label = (string)reader["CATEGORY"],
-                              data = (int)reader["SUM"]
-                          }
-                        );
-                    }
-
-                    result = new JsonResult(list)
-                    {
-                        StatusCode = 200
-                    };
+                    return NotFound("No statistics found.");
                 }
-                return result;
+
+                return Ok(stats);
             }
-            catch
+            catch (Exception ex)
             {
-                result = new JsonResult(new { message = "Unknown error" })
-                {
-                    StatusCode = 500
-                };
-                return result;
+                _logger.LogError(ex.Message);
+                return StatusCode(500, "An error occurred while processing the request.");
             }
         }
 
+        /// <summary>
+        /// Retrieve statistics by year.
+        /// </summary>
+        /// <returns>A list of statistics by year.</returns>
         [Authorize]
         [HttpGet("byYear")]
-        public JsonResult GetYear()
+        public async Task<ActionResult> GetYear()
         {
-            DbDataReader reader;
-            JsonResult result;
-
             try
             {
-                using (var dbConnection = new DbConnection().connection)
+                var stats = await _repository.GetStatsByYearAsync();
+
+                if (stats == null || stats.Count == 0)
                 {
-                    OdbcCommand command = new OdbcCommand("SELECT * FROM STATS_BY_YEAR()", dbConnection);
-                    reader = command.ExecuteReader();
-
-                    var list = new List<Stat>();
-                    while (reader.Read())
-                    {
-                        list.Add(
-                          new Stat
-                          {
-                              label = Convert.ToString((int)reader["YEAR"]),
-                              data = (int)reader["COUNT"]
-                          }
-                        );
-                    }
-
-                    result = new JsonResult(list)
-                    {
-                        StatusCode = 200
-                    };
+                    return NotFound("No statistics found.");
                 }
-                return result;
+
+                return Ok(stats);
             }
-            catch
+            catch (Exception ex)
             {
-                result = new JsonResult(new { message = "Unknown error" })
-                {
-                    StatusCode = 500
-                };
-                return result;
+                _logger.LogError(ex.Message);
+                return StatusCode(500, "An error occurred while processing the request.");
             }
         }
     }

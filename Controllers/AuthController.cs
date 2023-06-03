@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
 using System.Data.Odbc;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,77 +10,111 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 
 namespace db_back.Controllers
 {
+    /// <summary>
+    /// Controller for handling authentication requests.
+    /// </summary>
     [ApiController]
-    [Route("[controller]")]
+    [Route("/api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly ILogger<ItemsController> _logger;
+        private readonly ILogger<AuthController> _logger;
         private readonly IConfiguration _configuration;
 
-        public AuthController(IConfiguration configuration, ILogger<ItemsController> logger)
+        private readonly OdbcConnection _connection;
+
+        public AuthController(IConfiguration configuration, ILogger<AuthController> logger, OdbcConnection connection)
         {
             _logger = logger;
             _configuration = configuration;
+            _connection = connection;
         }
 
+        /// <summary>
+        /// Verifies the manager's credentials and generates a JWT token for authorization.
+        /// </summary>
+        /// <param name="credentials">The manager's credentials.</param>
+        /// <returns>An HTTP response indicating success or failure.</returns>
         [HttpPost]
-        public StatusCodeResult Post(ManagerCredentials credentials)
+        public async Task<ActionResult> Post(ManagerCredentials credentials)
         {
-            using var dbConnection = new DbConnection().connection;
-            OdbcCommand command = new OdbcCommand("SELECT 1 FROM MANAGERS WHERE USERNAME=? AND PASSWORD_HASH=?", dbConnection);
-            command.Parameters.AddWithValue("@username", credentials.username);
-            command.Parameters.AddWithValue("@password", credentials.password);
-            var reader = command.ExecuteReader();
+            await _connection.OpenAsync();
 
-            if (reader.Read())
+            try
             {
-                var issuer = _configuration["JWT:Issuer"];
-                var audience = _configuration["JWT:Audience"];
-                var key = Encoding.ASCII.GetBytes
-                (_configuration["JWT:Key"]);
-                var tokenDescriptor = new SecurityTokenDescriptor
+                var query = "SELECT [dbo].[VERIFY_ACCOUNT](?, ?)";
+                bool verified = false;
+                using (OdbcCommand command = new OdbcCommand(query, _connection))
                 {
-                    Subject = new ClaimsIdentity(new[]
+                    command.Parameters.AddWithValue("@username", credentials.username);
+                    command.Parameters.AddWithValue("@password", credentials.password);
+                    using (var reader = command.ExecuteReader())
                     {
+                        reader.Read();
+                        verified = Convert.ToBoolean(reader[0]);
+                    }
+                }
+
+                if (verified)
+                {
+                    var issuer = _configuration["JWT:Issuer"];
+                    var audience = _configuration["JWT:Audience"];
+                    var key = Encoding.ASCII.GetBytes
+                    (_configuration["JWT:Key"]);
+                    var tokenDescriptor = new SecurityTokenDescriptor
+                    {
+                        Subject = new ClaimsIdentity(new[]
+                        {
                 new Claim("Id", Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Sub, credentials.username),
                 new Claim(JwtRegisteredClaimNames.Email, credentials.username),
                 new Claim(JwtRegisteredClaimNames.Jti,
                 Guid.NewGuid().ToString())
              }),
-                    Expires = DateTime.UtcNow.AddMinutes(30),
-                    Issuer = issuer,
-                    Audience = audience,
-                    SigningCredentials = new SigningCredentials
-                    (new SymmetricSecurityKey(key),
-                    SecurityAlgorithms.HmacSha512Signature)
-                };
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                var jwtToken = tokenHandler.WriteToken(token);
-                var stringToken = tokenHandler.WriteToken(token);
+                        Expires = DateTime.UtcNow.AddMinutes(30),
+                        Issuer = issuer,
+                        Audience = audience,
+                        SigningCredentials = new SigningCredentials
+                        (new SymmetricSecurityKey(key),
+                        SecurityAlgorithms.HmacSha512Signature)
+                    };
+                    var tokenHandler = new JwtSecurityTokenHandler();
+                    var token = tokenHandler.CreateToken(tokenDescriptor);
+                    var jwtToken = tokenHandler.WriteToken(token);
+                    var stringToken = tokenHandler.WriteToken(token);
 
-                Response.Cookies.Append("jwt_token", stringToken, new Microsoft.AspNetCore.Http.CookieOptions
-                {
-                    HttpOnly = true,
-                    SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict
-                });
-                return StatusCode(200);
+                    Response.Cookies.Append("jwt_token", stringToken, new Microsoft.AspNetCore.Http.CookieOptions
+                    {
+                        HttpOnly = true,
+                        SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict
+                    });
+                    return Ok();
+                }
+            }
+            catch (OdbcException ex)
+            {
+                _logger.LogError("Error getting categories: " + ex.Message);
+            }
+            finally
+            {
+                await _connection.CloseAsync();
             }
 
-            return StatusCode(401);
+            return Unauthorized();
         }
 
-        [HttpGet("[action]")]
+        /// <summary>
+        /// Logs out the current user.
+        /// </summary>
+        /// <returns>An HTTP response indicating success or failure.</returns>
+        [HttpGet("logOut")]
         [Authorize]
-        public StatusCodeResult LogOut()
+        public ActionResult LogOut()
         {
             Response.Cookies.Delete("jwt_token");
-            return StatusCode(200);
+            return Ok();
         }
     }
 }

@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using db_back.Models;
+using db_back.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -18,78 +19,91 @@ using Newtonsoft.Json;
 
 namespace db_back.Controllers
 {
+    /// <summary>
+    /// Controller for handling orders.
+    /// </summary>
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/orders")]
     public class OrdersController : ControllerBase
     {
         private readonly ILogger<OrdersController> _logger;
 
-        public OrdersController(ILogger<OrdersController> logger)
+        private readonly IOrderRepository _repository;
+
+        public OrdersController(ILogger<OrdersController> logger, IOrderRepository repository)
         {
             _logger = logger;
+            _repository = repository;
         }
 
+        /// <summary>
+        /// Creates a new order.
+        /// </summary>
+        /// <param name="order">The order to create.</param>
+        /// <returns>A HTTP status code indicating success or failure.</returns>
         [HttpPost]
-        public dynamic Post([FromBody] Order order)
+        public async Task<IActionResult> Post([FromBody] Order order)
         {
-            DbDataReader reader;
-            JsonResult result;
-
             try
             {
-                using (var dbConnection = new DbConnection().connection)
+                if (order == null)
                 {
-                    OdbcCommand command = new OdbcCommand("SELECT MAX(ORDER_ID) FROM ORDERS", dbConnection);
-                    reader = command.ExecuteReader();
-                    reader.Read();
-                    var id = reader[0] != DBNull.Value ? (int)reader[0] + 1 : 0;
-
-                    var transaction = dbConnection.BeginTransaction();
-                    try
-                    {
-                        command = new OdbcCommand("INSERT INTO ORDERS(ORDER_ID, FULL_NAME, EMAIL, BILLING_ADDRESS, DELIVERY_ADDRESS, CREDIT_NUM, CREDIT_EXP, CREDIT_CVC, CREDIT_HOLDER) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)", dbConnection, transaction);
-                        command.Parameters.AddWithValue("@1", id);
-                        command.Parameters.AddWithValue("@2", order.orderData.lastName + " " + order.orderData.firstName);
-                        command.Parameters.AddWithValue("@3", order.orderData.email);
-                        command.Parameters.AddWithValue("@4", order.orderData.address);
-                        command.Parameters.AddWithValue("@5", order.orderData.addressDelivery);
-                        command.Parameters.AddWithValue("@6", order.orderData.cardNum);
-                        command.Parameters.AddWithValue("@7", order.orderData.cardExp);
-                        command.Parameters.AddWithValue("@8", order.orderData.cardCVC);
-                        command.Parameters.AddWithValue("@9", order.orderData.cardFullname);
-                        command.ExecuteNonQuery();
-
-                        foreach (var item in order.items)
-                        {
-                            command = new OdbcCommand("INSERT INTO ORDER_ITEMS VALUES(?, ?, ?)", dbConnection, transaction);
-                            command.Parameters.AddWithValue("@1", id);
-                            command.Parameters.AddWithValue("@2", item.id);
-                            command.Parameters.AddWithValue("@3", item.count);
-                            command.ExecuteNonQuery();
-                        }
-                    }
-                    catch
-                    {
-                        transaction.Rollback();
-
-                        result = new JsonResult(new { message = "Unknown error" })
-                        {
-                            StatusCode = 500
-                        };
-                        return result;
-                    }
-
-                    transaction.Commit();
-                    return StatusCode(200);
+                    return BadRequest("Order object cannot be null.");
                 }
-            }
-            catch
-            {
-                result = new JsonResult(new { message = "Unknown error" })
+
+                if (order.orderData == null)
                 {
-                    StatusCode = 500
-                };
-                return result;
+                    return BadRequest("OrderData object cannot be null.");
+                }
+
+                if (string.IsNullOrEmpty(order.orderData.firstName) || string.IsNullOrEmpty(order.orderData.lastName))
+                {
+                    return BadRequest("OrderData object must contain both a first name and a last name.");
+                }
+
+                if (string.IsNullOrEmpty(order.orderData.email))
+                {
+                    return BadRequest("OrderData object must contain an email address.");
+                }
+
+                if (string.IsNullOrEmpty(order.orderData.address))
+                {
+                    return BadRequest("OrderData object must contain a billing address.");
+                }
+
+                if (string.IsNullOrEmpty(order.orderData.cardNum))
+                {
+                    return BadRequest("OrderData object must contain a credit card number.");
+                }
+
+                if (string.IsNullOrEmpty(order.orderData.cardExp))
+                {
+                    return BadRequest("OrderData object must contain a credit card expiration date.");
+                }
+
+                if (string.IsNullOrEmpty(order.orderData.cardCVC))
+                {
+                    return BadRequest("OrderData object must contain a credit card CVC code.");
+                }
+
+                if (string.IsNullOrEmpty(order.orderData.cardFullname))
+                {
+                    return BadRequest("OrderData object must contain the full name on the credit card.");
+                }
+
+                if (order.items == null || order.items.Count == 0)
+                {
+                    return BadRequest("Order object must contain at least one item.");
+                }
+
+                await _repository.OrderAsync(order);
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return StatusCode(500, "An error occurred while processing the request.");
             }
         }
     }

@@ -1,110 +1,117 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Data.Odbc;
+using System.Threading.Tasks;
+using db_back.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace db_back.Controllers
 {
+    /// <summary>
+    /// Controller for managing categories.
+    /// </summary>
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/categories")]
     public class CategoriesController : ControllerBase
     {
-        private readonly ILogger<ItemsController> _logger;
+        private readonly ILogger<CategoriesController> _logger;
 
-        public CategoriesController(ILogger<ItemsController> logger)
+        private readonly ICategoryRepository _repository;
+
+        public CategoriesController(ILogger<CategoriesController> logger, ICategoryRepository repository)
         {
             _logger = logger;
+            _repository = repository;
         }
 
+        /// <summary>
+        /// Gets a list of all categories.
+        /// </summary>
+        /// <returns>A list of category names.</returns>
         [HttpGet]
-        public JsonResult Get()
+        [ProducesResponseType(typeof(List<string>), 200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [ProducesResponseType(typeof(string), 500)]
+        public async Task<ActionResult<List<string>>> Get()
         {
-            DbDataReader reader;
-            JsonResult result;
-
             try
             {
-                using (var dbConnection = new DbConnection().connection)
-                {
-                    OdbcCommand command = new OdbcCommand("SELECT * FROM CATEGORIES", dbConnection);
-                    reader = command.ExecuteReader();
+                List<string> categories = await _repository.GetCategoriesAsync();
 
-
-                    var list = new List<string>();
-                    while (reader.Read())
-                    {
-                        list.Add(
-                          (string)reader["CATEGORY"]
-                        );
-                    }
-
-                    result = new JsonResult(list)
-                    {
-                        StatusCode = 200
-                    };
-                }
-                return result;
+                return Ok(categories);
             }
-            catch
+            catch (ArgumentException ex)
             {
-                result = new JsonResult(new { message = "Unknown error" })
-                {
-                    StatusCode = 500
-                };
-                return result;
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting categories");
+
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
+        /// <summary>
+        /// Deletes a category.
+        /// </summary>
+        /// <param name="category">The name of the category to delete.</param>
         [Authorize]
-        [HttpDelete("{category?}")]
-        public dynamic Delete(string category)
+        [HttpDelete("{category}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [ProducesResponseType(typeof(string), 500)]
+        public async Task<ActionResult> DeleteAsync(string category)
         {
             var decodedCategory = Uri.UnescapeDataString(category);
+
             try
             {
-                using (var dbConnection = new DbConnection().connection)
-                {
-                    OdbcCommand command = new OdbcCommand("DELETE FROM CATEGORIES WHERE CATEGORY=?", dbConnection);
-                    command.Parameters.AddWithValue("@category", decodedCategory);
-                    command.ExecuteNonQuery();
+                await _repository.DeleteCategoryAsync(decodedCategory);
 
-                    return StatusCode(200);
-                }
+                return Ok();
             }
-            catch
+            catch (ArgumentException ex)
             {
-                return new JsonResult(new { message = "Unknown error" })
-                {
-                    StatusCode = 500
-                };
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting category");
+
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 
+        /// <summary>
+        /// Creates a new category.
+        /// </summary>
+        /// <param name="category">The name of the new category.</param>
         [Authorize]
-        [HttpPost("{category?}")]
-        public dynamic Post([FromRoute] string category)
+        [HttpPost("{category}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(typeof(string), 400)]
+        [ProducesResponseType(typeof(string), 500)]
+        public async Task<ActionResult> Post([FromRoute] string category)
         {
             var decodedCategory = Uri.UnescapeDataString(category);
+
             try
             {
-                using (var dbConnection = new DbConnection().connection)
-                {
-                    OdbcCommand command = new OdbcCommand("INSERT INTO CATEGORIES VALUES(?)", dbConnection);
-                    command.Parameters.AddWithValue("@category", decodedCategory);
-                    command.ExecuteNonQuery();
+                await _repository.NewCategoryAsync(decodedCategory);
 
-                    return StatusCode(200);
-                }
+                return Ok();
             }
-            catch
+            catch (ArgumentException ex)
             {
-                return new JsonResult(new { message = "Unknown error" })
-                {
-                    StatusCode = 500
-                };
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating category");
+
+                return StatusCode(500, "An error occurred while processing your request.");
             }
         }
 

@@ -1,3 +1,4 @@
+using db_back.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,6 +15,8 @@ using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Data.Odbc;
+using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -90,7 +93,19 @@ namespace db_back
                     new List<string>()
                     }
                 });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                options.IncludeXmlComments(xmlPath);
             });
+
+            string connectionString = Configuration.GetConnectionString("DefaultConnection");
+            services.AddTransient<OdbcConnection>(_ => new OdbcConnection(connectionString));
+
+            services.AddScoped<IItemRepository, ItemRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IStatsRepository, StatsRepository>();
 
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -106,8 +121,8 @@ namespace db_back
                             .MinimumLevel.Debug()
                             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                             .Enrich.FromLogContext()
-                            .WriteTo.Console()
-                            .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+                            .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}]{RequestId} {Message:lj}{NewLine}{Exception}")
+                            .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day, outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}]{RequestId} {Message:lj}{NewLine}{Exception}")
                             .CreateLogger();
             app.UseSerilogRequestLogging();
 

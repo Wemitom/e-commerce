@@ -1,198 +1,188 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.Data.Odbc;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using db_back.Models;
+using db_back.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace db_back.Controllers
 {
+    /// <summary>
+    /// Controller for handling items.
+    /// </summary>
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/items")]
     public class ItemsController : ControllerBase
     {
         private readonly ILogger<ItemsController> _logger;
 
-        public ItemsController(ILogger<ItemsController> logger)
+        private readonly IItemRepository _repository;
+
+        public ItemsController(ILogger<ItemsController> logger, IItemRepository repository)
         {
             _logger = logger;
+            _repository = repository;
         }
 
-        /// <returns></returns>
-        /// <response code="200">Успех</response>
-        /// <response code="500">Ошибка</response>
+        /// <summary>
+        /// Gets a list of all items.
+        /// </summary>
+        /// <returns>A list of all items.</returns>
+        /// <response code="200">Success</response>
+        /// <response code="500">Internal server error</response>
         [HttpGet]
-        [ProducesResponseType(typeof(Item[]), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(IEnumerable<Item>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
-        public JsonResult Get()
+        public async Task<ActionResult> Get()
         {
-            DbDataReader reader;
-            JsonResult result;
-
             try
             {
-                using (var dbConnection = new DbConnection().connection)
-                {
-                    OdbcCommand command = new OdbcCommand("SELECT ITEM_ID, TITLE, PRICE, CATEGORY FROM ITEMS", dbConnection);
-                    reader = command.ExecuteReader();
+                var items = await _repository.GetItemsAsync();
 
-                    var list = new List<Item>();
-                    while (reader.Read())
-                    {
-                        list.Add(new Item
-                        {
-                            id = (int)reader["ITEM_ID"],
-                            title = (string)reader["TITLE"],
-                            price = (int)reader["PRICE"],
-                            category = (string)reader["CATEGORY"]
-                        });
-                    }
-
-                    result = new JsonResult(list)
-                    {
-                        StatusCode = 200
-                    };
-                }
-                return result;
+                return Ok(items);
             }
-            catch
+            catch (ArgumentException ex)
             {
-                result = new JsonResult(new { message = "Unknown error" })
-                {
-                    StatusCode = 500
-                };
-                return result;
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve items");
+
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponse { message = "Failed to retrieve items" });
             }
         }
 
-        [HttpGet("[action]/{id?}")]
-        public JsonResult? GetImage(int id)
+        /// <summary>
+        /// Gets the image for a specific item.
+        /// </summary>
+        /// <param name="id">The ID of the item.</param>
+        /// <returns>The image for the item.</returns>
+        /// <response code="200">Success</response>
+        /// <response code="400">Bad request</response>
+        [HttpGet("getImage/{id?}")]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
+        public async Task<ActionResult> GetImage(int id)
         {
-            DbDataReader reader;
-            JsonResult result;
-
             try
             {
-                using var dbConnection = new DbConnection().connection;
-                OdbcCommand command = new OdbcCommand("SELECT IMAGE FROM ITEMS WHERE ITEM_ID=?", dbConnection);
-                command.Parameters.AddWithValue("@id", id);
-                reader = command.ExecuteReader();
+                var image = await _repository.GetImageAsync(id);
 
-                reader.Read();
-                result = new JsonResult(new { image = reader[0] != System.DBNull.Value ? Convert.ToBase64String((byte[])reader[0]) : null }) { StatusCode = 200 };
-                return result;
+                return Ok(new { image });
             }
-            catch
+            catch (ArgumentException ex)
             {
-                result = new JsonResult(new { message = "Unknown error" })
-                {
-                    StatusCode = 500
-                };
-                return result;
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to retrieve image for item with ID {id}");
+
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponse { message = $"Failed to retrieve image for item with ID {id}" });
             }
         }
 
-        /// <returns></returns>
-        /// <response code="200">Успех</response>
-        /// <response code="401">Ошибка авторизации</response>
-        /// <response code="500">Ошибка</response>
+        /// <summary>
+        /// Creates a new item.
+        /// </summary>
+        /// <param name="item">The new item to create.</param>
+        /// <returns>A success status code.</returns>
+        /// <response code="200">Success</response>
+        /// <response code="400">Bad request</response>
+        /// <response code="500">Internal server error</response>
         [Authorize]
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
-        public dynamic Post([FromBody] NewItem item)
+        public async Task<ActionResult> Post([FromBody] NewItem item)
         {
             try
             {
-                using (var dbConnection = new DbConnection().connection)
-                {
-                    OdbcCommand command = new OdbcCommand("INSERT INTO ITEMS(TITLE, PRICE, CATEGORY, IMAGE) VALUES (?, ?, ?, ?)", dbConnection);
-                    command.Parameters.AddWithValue("@title", item.title);
-                    command.Parameters.AddWithValue("@price", item.price);
-                    command.Parameters.AddWithValue("@category", item.category);
-                    command.Parameters.AddWithValue("@image", item.image != null ? Convert.FromBase64String(item.image) : null);
-                    command.ExecuteNonQuery();
+                await _repository.NewItemAsync(item);
 
-                    return StatusCode(200);
-                }
+                return Ok();
             }
-            catch
+            catch (ArgumentException ex)
             {
-                return new JsonResult(new ErrorResponse { code = ErrorCodes.Unknown, message = "Unknown error" })
-                {
-                    StatusCode = 500
-                };
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create new item");
+
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponse { message = "Failed to create new item" });
             }
         }
 
-        /// <returns></returns>
-        /// <response code="200">Успех</response>
-        /// <response code="401">Ошибка авторизации</response>
-        /// <response code="500">Ошибка</response>
+        /// <summary>
+        /// Deletes an item with the specified ID.
+        /// </summary>
+        /// <param name="id">The ID of the item to delete.</param>
+        /// <returns>A success status code.</returns>
+        /// <response code="200">Success</response>
+        /// <response code="400">Bad request</response>
+        /// <response code="500">Internal server error</response>
         [Authorize]
         [HttpDelete("{id?}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
-        public dynamic Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
             try
             {
-                using (var dbConnection = new DbConnection().connection)
-                {
-                    OdbcCommand command = new OdbcCommand("DELETE FROM ITEMS WHERE ITEM_ID=?", dbConnection);
-                    command.Parameters.AddWithValue("@id", id);
-                    command.ExecuteNonQuery();
+                await _repository.DeleteItemAsync(id);
 
-                    return StatusCode(200);
-                }
+                return Ok();
             }
-            catch
+            catch (ArgumentException ex)
             {
-                return new JsonResult(new { message = "Unknown error" })
-                {
-                    StatusCode = 500
-                };
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to delete item with ID {id}");
+
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponse { message = $"Failed to delete item with ID {id}" });
             }
         }
 
-        /// <returns></returns>
-        /// <response code="200">Успех</response>
-        /// <response code="401">Ошибка авторизации</response>
-        /// <response code="500">Ошибка</response>
+        /// <summary>
+        /// Updates an item with the specified ID.
+        /// </summary>
+        /// <param name="item">The updated item.</param>
+        /// <param name="id">The ID of the item to update.</param>
+        /// <returns>A success status code.</returns>
+        /// <response code="200">Success</response>
+        /// <response code="400">Bad request</response>
+        /// <response code="500">Internal server error</response>
         [Authorize]
         [HttpPut("{id?}")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
-        public dynamic Put([FromBody] NewItem item, int id)
+        public async Task<ActionResult> Put([FromBody] NewItem item, int id)
         {
             try
             {
-                using (var dbConnection = new DbConnection().connection)
-                {
-                    OdbcCommand command = new OdbcCommand("UPDATE ITEMS SET TITLE=?, PRICE=?, CATEGORY=?, IMAGE=? WHERE ITEM_ID=?", dbConnection);
-                    command.Parameters.AddWithValue("@title", item.title);
-                    command.Parameters.AddWithValue("@price", item.price);
-                    command.Parameters.AddWithValue("@category", item.category);
-                    command.Parameters.AddWithValue("@image", item.image != null ? Convert.FromBase64String(item.image) : null);
-                    command.Parameters.AddWithValue("@id", id);
-                    command.ExecuteNonQuery();
+                await _repository.UpdateItemAsync(item, id);
 
-                    return StatusCode(200);
-                }
+                return Ok();
             }
-            catch
+            catch (ArgumentException ex)
             {
-                return new JsonResult(new ErrorResponse { code = ErrorCodes.Unknown, message = "Unknown error" })
-                {
-                    StatusCode = 500
-                };
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to update item with ID {id}");
+
+                return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponse { message = $"Failed to update item with ID {id}" });
             }
         }
     }

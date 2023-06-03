@@ -33,6 +33,6 @@ namespace db_back.Models
     public class Order
     {
         public OrderData orderData { get; set; }
-        public ItemData[] items { get; set; }
+        public List<ItemData> items { get; set; }
     }
 }
