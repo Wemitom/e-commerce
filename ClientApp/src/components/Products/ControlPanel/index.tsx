@@ -20,13 +20,16 @@ const ControlPanel = () => {
   const [show, setShow] = useState<boolean | null>(null);
 
   const [openAddProduct, setOpenAddProduct] = useState(false);
-  const [addProduct] = useAddProductMutation();
+  const [addProduct, { isSuccess: isSuccessAddProduct }] =
+    useAddProductMutation();
   const [openAddCategory, setOpenAddCategory] = useState(false);
-  const [addCategory] = useAddCategoryMutation();
+  const [addCategory, { isSuccess: isSuccessAddCategory }] =
+    useAddCategoryMutation();
 
   const [openDeleteCategory, setOpenDeleteCategory] = useState(false);
   const [category, setCategory] = useState('');
-  const [deleteCategory] = useDeleteCategoryMutation();
+  const [deleteCategory, { isSuccess: isSuccessDelete }] =
+    useDeleteCategoryMutation();
 
   const handleAddExamples = async () => {
     const examples: {
@@ -37,34 +40,38 @@ const ControlPanel = () => {
     await Promise.all(
       examples.categories.map((example) => deleteCategory(example))
     );
-    await Promise.all(
-      examples.categories.map((example) => addCategory(example))
-    );
 
-    Promise.all(examples.items.map((example) => addProduct(example))).then(
-      () =>
-        toast.success('Товары успешно добавлены!', {
-          position: 'top-right',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: 'light'
-        }),
-      () =>
-        toast.error('Возникла ошибка!', {
-          position: 'top-right',
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: 'light'
-        })
-    );
+    if (isSuccessDelete) {
+      await Promise.all(
+        examples.categories.map((example) => addCategory(example))
+      );
+
+      if (isSuccessAddCategory)
+        await Promise.all(examples.items.map((example) => addProduct(example)));
+    }
+
+    if (isSuccessAddProduct)
+      toast.success('Товары успешно добавлены!', {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: 'light'
+      });
+    else
+      toast.error(`При добавлении возникла ошибка`, {
+        position: 'top-right',
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: 'light'
+      });
   };
 
   const ref = useRef<HTMLDivElement | null>(null);

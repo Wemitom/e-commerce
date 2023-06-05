@@ -36,7 +36,7 @@ namespace db_back.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<Item>), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.InternalServerError)]
-        public async Task<ActionResult> Get()
+        public async Task<ActionResult<IEnumerable<Item>>> Get()
         {
             try
             {
@@ -64,25 +64,19 @@ namespace db_back.Controllers
         /// <response code="200">Success</response>
         /// <response code="400">Bad request</response>
         [HttpGet("getImage/{id?}")]
-        [ProducesResponseType(typeof(string), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(ImageResponse), (int)HttpStatusCode.OK)]
         [ProducesResponseType(typeof(ErrorResponse), (int)HttpStatusCode.BadRequest)]
-        public async Task<ActionResult> GetImage(int id)
+        public async Task<ActionResult<ImageResponse>> GetImage(int id)
         {
             try
             {
                 var image = await _repository.GetImageAsync(id);
 
-                return Ok(new { image });
+                return Ok(new ImageResponse { image = image });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Failed to retrieve image for item with ID {id}");
-
-                return StatusCode((int)HttpStatusCode.InternalServerError, new ErrorResponse { message = $"Failed to retrieve image for item with ID {id}" });
+                return BadRequest(new ErrorResponse { message = ex.Message });
             }
         }
 
