@@ -1,5 +1,6 @@
 import { Chart } from 'react-google-charts';
 
+import Button from 'components/common/Button';
 import Section from 'components/common/Section';
 import { ReactComponent as Spinner } from 'public/spinner.svg';
 import {
@@ -149,6 +150,12 @@ const Stats = () => {
           </p>
         )}
       </Section>
+
+      <div className="mb-3 flex justify-center">
+        <Button handleClick={() => window.open('api/stats/export')}>
+          Экспортировать в Excel
+        </Button>
+      </div>
     </div>
   );
 };
