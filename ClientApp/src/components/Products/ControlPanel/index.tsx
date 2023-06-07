@@ -37,21 +37,32 @@ const ControlPanel = () => {
       items: Omit<ProductType & { image: string }, 'id'>[];
     } = await (await fetch('data/examples.json')).json();
 
-    await Promise.all(
-      examples.categories.map((example) => deleteCategory(example))
-    );
-
-    if (isSuccessDelete) {
+    try {
       await Promise.all(
-        examples.categories.map((example) => addCategory(example))
+        examples.categories.map((example) => deleteCategory(example).unwrap())
       );
 
-      if (isSuccessAddCategory)
-        await Promise.all(examples.items.map((example) => addProduct(example)));
-    }
+      await Promise.all(
+        examples.categories.map((example) => addCategory(example).unwrap())
+      );
 
-    if (isSuccessAddProduct)
-      toast.success('Товары успешно добавлены!', {
+      await Promise.all(
+        examples.items.map((example) => addProduct(example).unwrap())
+      );
+
+      if (isSuccessAddProduct)
+        toast.success('Товары успешно добавлены!', {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: 'light'
+        });
+    } catch (error) {
+      toast.error(`При добавлении возникла ошибка: ${error}`, {
         position: 'top-right',
         autoClose: 5000,
         hideProgressBar: false,
@@ -61,17 +72,7 @@ const ControlPanel = () => {
         progress: undefined,
         theme: 'light'
       });
-    else
-      toast.error(`При добавлении возникла ошибка`, {
-        position: 'top-right',
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: 'light'
-      });
+    }
   };
 
   const ref = useRef<HTMLDivElement | null>(null);

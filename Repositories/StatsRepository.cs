@@ -11,6 +11,7 @@ namespace db_back.Repositories
     {
         Task<List<Stat>> GetStatsByCategoryAsync();
         Task<List<Stat>> GetStatsByYearAsync();
+        Task<List<Stat>> GetStatsItemsByCategoryAsync();
     }
 
     public class StatsRepository : IStatsRepository
@@ -84,6 +85,42 @@ namespace db_back.Repositories
                                   data = (int)reader["COUNT"]
                               }
                             );
+                        }
+                    }
+                }
+            }
+            catch (OdbcException ex)
+            {
+                _logger.LogError("Error getting stats: " + ex.Message);
+            }
+            finally
+            {
+                _connection.Close();
+            }
+
+            return stats;
+        }
+
+        public async Task<List<Stat>> GetStatsItemsByCategoryAsync()
+        {
+            List<Stat> stats = new List<Stat>();
+
+            try
+            {
+                await _connection.OpenAsync();
+
+                string query = "SELECT * FROM ITEMS_BY_CATEGORY";
+                using (OdbcCommand command = new OdbcCommand(query, _connection))
+                {
+                    using (var reader = await command.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            stats.Add(new Stat
+                            {
+                                label = (string)reader["CATEGORY"],
+                                data = (int)reader["COUNT"]
+                            });
                         }
                     }
                 }

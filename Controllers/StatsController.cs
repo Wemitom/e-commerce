@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using db_back.Models;
 using db_back.Repositories;
@@ -26,42 +27,36 @@ namespace db_back.Controllers
         }
 
         /// <summary>
-        /// Retrieve statistics by category.
+        /// Retrieve statistics of the chosen type.
         /// </summary>
-        /// <returns>A list of statistics by category.</returns>
+        /// <param name="type">Type of statistic to retrieve</param>
+        /// <returns>A list of statistics.</returns>
         [Authorize]
-        [HttpGet("byCategory")]
-        public async Task<ActionResult> Get()
+        [HttpGet("{type}")]
+        [ProducesResponseType(typeof(List<Stat>), (int)HttpStatusCode.OK)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.NotFound)]
+        [ProducesResponseType(typeof(string), (int)HttpStatusCode.InternalServerError)]
+        public async Task<ActionResult> Get([FromRoute] String type)
         {
             try
             {
-                var stats = await _repository.GetStatsByCategoryAsync();
+                List<Stat>? stats;
 
-                if (stats == null || stats.Count == 0)
+                switch (type)
                 {
-                    return NotFound("No statistics found.");
+                    case (StatsTypes.byCategory):
+                        stats = await _repository.GetStatsByCategoryAsync();
+                        break;
+                    case (StatsTypes.byYear):
+                        stats = await _repository.GetStatsByYearAsync();
+                        break;
+                    case (StatsTypes.itemsByCategory):
+                        stats = await _repository.GetStatsItemsByCategoryAsync();
+                        break;
+                    default:
+                        stats = null;
+                        break;
                 }
-
-                return Ok(stats);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                return StatusCode(500, "An error occurred while processing the request.");
-            }
-        }
-
-        /// <summary>
-        /// Retrieve statistics by year.
-        /// </summary>
-        /// <returns>A list of statistics by year.</returns>
-        [Authorize]
-        [HttpGet("byYear")]
-        public async Task<ActionResult> GetYear()
-        {
-            try
-            {
-                var stats = await _repository.GetStatsByYearAsync();
 
                 if (stats == null || stats.Count == 0)
                 {

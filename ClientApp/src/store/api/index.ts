@@ -117,6 +117,20 @@ export const storeApi = createApi({
         }
       })
     }),
+    getItemStatsByCategory: builder.query<StatsType, void>({
+      query: () => ({
+        url: 'stats/itemsByCategory',
+        method: 'GET',
+        responseHandler: async (res) => {
+          const data: { label: string; data: number }[] = await res.json(),
+            stats: StatsType = [['Категория', 'Кол-во товаров']];
+          data.forEach((stat) => stats.push([stat.label, stat.data]));
+          if (stats.length === 2)
+            return [stats[0], [(+stats[1][0] - 1).toString(), 0], stats[1]];
+          return stats;
+        }
+      })
+    }),
     order: builder.mutation<
       { message: string; code: number } | undefined,
       { orderData: OrderData; items: ItemData[] }
@@ -141,5 +155,6 @@ export const {
   useAddCategoryMutation,
   useGetStatsByCategoryQuery,
   useGetStatsByYearQuery,
+  useGetItemStatsByCategoryQuery,
   useOrderMutation
 } = storeApi;

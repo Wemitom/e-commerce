@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Data.Odbc;
-using db_back.Models;
 using Microsoft.Extensions.Logging;
 
 namespace db_back.Repositories

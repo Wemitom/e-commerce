@@ -27,7 +27,7 @@ namespace db_back.Repositories
         public async Task OrderAsync(Order order)
         {
             await _connection.OpenAsync();
-            using (OdbcTransaction transaction = _connection.BeginTransaction(System.Data.IsolationLevel.Serializable))
+            using (OdbcTransaction transaction = _connection.BeginTransaction())
             {
                 try
                 {
